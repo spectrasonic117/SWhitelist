@@ -1,0 +1,55 @@
+# Mensajes de SWhitelist (formato MiniMessage)
+# Documentación de MiniMessage: https://docs.adventure.kyori.net/minimessage/format.html
+
+message:
+  # Prefijo del plugin
+  prefix: "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> "
+  
+  # Comandos - Agregar
+  success-added: "Has agregado exitosamente a <white>%player%</white> a la whitelist."
+  already-exists: "El jugador <white>%player%</white> ya está en la whitelist."
+  
+  # Comandos - Remover
+  success-removed: "Has removido exitosamente a <white>%player%</white> de la whitelist."
+  not-in-database: "El jugador <white>%player%</white> no está en la whitelist."
+  
+  # Comandos - On/Off
+  success-whitelist-on: "La whitelist ha sido activada."
+  success-whitelist-off: "La whitelist ha sido desactivada."
+  whitelist-already-enabled: "La whitelist ya está activada."
+  whitelist-already-disabled: "La whitelist ya está desactivada."
+  
+  # Comandos - Lista
+  player-list: "Jugadores en la whitelist: "
+  player-list-empty: "--- No hay jugadores en la whitelist ---"
+  
+  # Comandos - Lockdown
+  lockdown-announce: "El servidor entrará en modo lockdown en <white>%duration%</white>."
+  lockdown-countdown: "El servidor entrará en lockdown en <white>%time%</white> segundos."
+  lockdown-success: "El servidor está ahora en modo lockdown."
+  lockdown-invalid-format: "Formato de tiempo inválido. Usa: 10s, 5m, 1h"
+  
+  # Comandos - Reload
+  reload-success: "La configuración ha sido recargada exitosamente."
+  
+  # Errores
+  no-permission: "No tienes permiso para ejecutar este comando."
+  error-database: "Ocurrió un error al acceder a la base de datos."
+  error-limit: "El nombre del jugador debe tener al menos 3 caracteres."
+  
+  # Kick
+  whitelist-kick: "La whitelist está activa y tu nombre no está en ella."
+  
+  # Ayuda
+  help-menu:
+    - ""
+    - "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> <white>Comandos disponibles:</white>"
+    - ""
+    - "<gray>|</gray> <aqua>/swhitelist add <player></aqua> <gray>-</gray> <gray>Agregar jugador a la whitelist.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist remove <player></aqua> <gray>-</gray> <gray>Remover jugador de la whitelist.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist list</aqua> <gray>-</gray> <gray>Listar jugadores en la whitelist.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist on</aqua> <gray>-</gray> <gray>Activar la whitelist.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist off</aqua> <gray>-</gray> <gray>Desactivar la whitelist.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist lockdown <time> [reason]</aqua> <gray>-</gray> <gray>Activar modo lockdown.</gray>"
+    - "<gray>|</gray> <aqua>/swhitelist reload</aqua> <gray>-</gray> <gray>Recargar configuración.</gray>"
+    - ""

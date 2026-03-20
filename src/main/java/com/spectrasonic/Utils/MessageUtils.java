@@ -51,19 +51,17 @@ public final class MessageUtils {
     }
 
     public static void sendOnlyPlayerCommandMessage(CommandSender sender) {
-        Bukkit.getConsoleSender().sendMessage(
-                miniMessage.deserialize(
-                        PREFIX + "<#ff003c><b>[x]</b> <#9e9893>Only players can use this command<#9e9893>"));
+        miniMessage.deserialize(
+                PREFIX + "<#ff003c><b>[x]</b> <#9e9893>Only players can use this command<#9e9893>");
     }
 
     public static void configReloadedMessage(CommandSender sender) {
-        Bukkit.getConsoleSender().sendMessage(
-                miniMessage.deserialize(PREFIX + "<green><b>[✔️]</b> <#9e9893>Config Reloaded</#9e9893>"));
+        miniMessage.deserialize(PREFIX + "<green><b>[✔️]</b> <#9e9893>Config Reloaded</#9e9893>");
     }
 
     // Alert Messages
 
-    public static void sucessMessage(CommandSender sender, String message) {
+    public static void successMessage(CommandSender sender, String message) {
         sender.sendMessage(miniMessage.deserialize(SUCESS_PREFIX + message + CLOSE_PREFIX));
     }
 

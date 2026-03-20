@@ -1,8 +1,51 @@
 name: SWhitelist
-api: "1.21"
-version: "${version}"
+version: '1.0.0'
 main: com.spectrasonic.SWhitelist.Main
-api-version: "1.21"
-authors: [Spectrasonic]
-depends: [CommandAPI]
+api-version: '1.21'
+description: 'Plugin moderno de whitelist para Minecraft'
+author: Spectrasonic
 
+commands:
+  swhitelist:
+    description: 'Comando principal de SWhitelist'
+    usage: '/swhitelist <subcomando>'
+    aliases: [swl]
+    permission: swhitelist.use
+
+permissions:
+  swhitelist.use:
+    description: 'Permite usar el comando principal de SWhitelist'
+    default: op
+  swhitelist.add:
+    description: 'Permite agregar jugadores a la whitelist'
+    default: op
+  swhitelist.remove:
+    description: 'Permite remover jugadores de la whitelist'
+    default: op
+  swhitelist.list:
+    description: 'Permite listar jugadores en la whitelist'
+    default: op
+  swhitelist.on:
+    description: 'Permite activar la whitelist'
+    default: op
+  swhitelist.off:
+    description: 'Permite desactivar la whitelist'
+    default: op
+  swhitelist.lockdown:
+    description: 'Permite activar el modo lockdown'
+    default: op
+  swhitelist.reload:
+    description: 'Permite recargar la configuración'
+    default: op
+  swhitelist.*:
+    description: 'Otorga todos los permisos de SWhitelist'
+    default: op
+    children:
+      swhitelist.use: true
+      swhitelist.add: true
+      swhitelist.remove: true
+      swhitelist.list: true
+      swhitelist.on: true
+      swhitelist.off: true
+      swhitelist.lockdown: true
+      swhitelist.reload: true

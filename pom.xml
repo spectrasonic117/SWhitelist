@@ -19,6 +19,7 @@
         <commandapi.version>11.1.0</commandapi.version>
         <lombok.version>1.18.44</lombok.version>
         <adventure.version>4.26.1</adventure.version>
+        <sqlite.version>3.45.1.0</sqlite.version>
 
         <!-- Plguins Version -->
         <compiler.version>3.14.0</compiler.version>
@@ -73,6 +74,13 @@
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
             <version>${adventure.version}</version>
+        </dependency>
+
+        <!-- SQLite -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>${sqlite.version}</version>
         </dependency>
     </dependencies>
 

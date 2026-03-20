@@ -1,6 +1,7 @@
 package com.spectrasonic.SWhitelist.managers;
 
 import com.spectrasonic.SWhitelist.Main;
+import com.spectrasonic.SWhitelist.events.WhitelistEvent;
 import lombok.Getter;
 
 @Getter
@@ -13,8 +14,13 @@ public class EventManager {
         registerEvents();
     }
 
+    // Registrar todos los eventos del plugin
     private void registerEvents() {
-        // Register events here
+        plugin.getServer().getPluginManager().registerEvents(
+                new WhitelistEvent(plugin),
+                plugin
+        );
+        
+        plugin.getLogger().info("Eventos registrados correctamente.");
     }
-
 }
