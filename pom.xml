@@ -35,10 +35,6 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
-        <repository>
-            <id>aikar</id>
-            <url>https://repo.aikar.co/content/groups/aikar/</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -53,16 +49,11 @@
         <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-core</artifactId>
+            <artifactId>commandapi-paper-core</artifactId>
             <version>${commandapi.version}</version>
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>${commandapi.version}</version>
-        </dependency>
 
         <!-- Lombok -->
         <dependency>
@@ -110,34 +101,6 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
-            </plugin>
-
-            <!-- Shade plugin para crear el JAR y hacer relocaciones -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${shade.version}</version>
-                <configuration>
-                    <outputDirectory>${project.basedir}/out</outputDirectory>
-                    <finalName>${project.artifactId}-${project.version}</finalName>
-                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
-                    <shadedArtifactAttached>true</shadedArtifactAttached>
-                    <minimizeJar>true</minimizeJar>
-                    <relocations>
-                        <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>com.spectrasonic.commandapi</shadedPattern>
-                        </relocation>
-                    </relocations>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- Procesamiento de resources para expandir variables en plugin.yml -->

@@ -4,8 +4,6 @@ import com.spectrasonic.SWhitelist.managers.CommandManager;
 import com.spectrasonic.SWhitelist.managers.ConfigManager;
 import com.spectrasonic.SWhitelist.managers.EventManager;
 
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import lombok.Getter;
 
 import com.spectrasonic.Utils.CommandUtils;
@@ -21,14 +19,8 @@ public final class Main extends JavaPlugin {
     private EventManager eventManager;
 
     @Override
-    public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this));
-    }
-
-    @Override
     public void onEnable() {
         saveDefaultConfig();
-        CommandAPI.onEnable();
 
         this.configManager = new ConfigManager(this);
         this.commandManager = new CommandManager(this);
@@ -41,7 +33,6 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        CommandAPI.onDisable();
         MessageUtils.sendShutdownMessage(this);
     }
 
