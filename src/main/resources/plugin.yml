@@ -1,0 +1,8 @@
+name: SWhitelist
+api: "1.21"
+version: "${version}"
+main: com.spectrasonic.SWhitelist.Main
+api-version: "1.21"
+authors: [Spectrasonic]
+depends: [CommandAPI]
+
