@@ -26,32 +26,32 @@ public class DatabaseManager {
             dataFolder.mkdirs();
         }
 
-        File dbFile = new File(dataFolder, "swhitelist.db");
+        File dbFile = new File(dataFolder, "database.db");
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
-        
+
         // Crear tablas si no existen
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS whitelist (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT NOT NULL UNIQUE,
-                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
-            
+                        CREATE TABLE IF NOT EXISTS whitelist (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            username TEXT NOT NULL UNIQUE,
+                            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """);
+
             stmt.execute("""
-                CREATE TABLE IF NOT EXISTS settings (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    key TEXT NOT NULL UNIQUE,
-                    value TEXT NOT NULL
-                )
-            """);
-            
+                        CREATE TABLE IF NOT EXISTS settings (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            key TEXT NOT NULL UNIQUE,
+                            value TEXT NOT NULL
+                        )
+                    """);
+
             // Insertar configuración por defecto si no existe
             stmt.execute("""
-                INSERT OR IGNORE INTO settings (key, value) 
-                VALUES ('whitelist_enabled', 'false')
-            """);
+                        INSERT OR IGNORE INTO settings (key, value)
+                        VALUES ('whitelist_enabled', 'false')
+                    """);
         }
     }
 
@@ -117,7 +117,7 @@ public class DatabaseManager {
     public List<String> getAllPlayers() throws SQLException {
         List<String> players = new ArrayList<>();
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist ORDER BY username")) {
+                ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist ORDER BY username")) {
             while (rs.next()) {
                 players.add(rs.getString("username"));
             }

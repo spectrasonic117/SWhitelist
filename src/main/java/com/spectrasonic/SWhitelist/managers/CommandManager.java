@@ -4,6 +4,7 @@ import com.spectrasonic.SWhitelist.Main;
 import com.spectrasonic.SWhitelist.commands.*;
 import com.spectrasonic.Utils.MessageUtils;
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TimeArgument;
 import lombok.Getter;
@@ -22,7 +23,7 @@ public class CommandManager {
     private void registerCommands() {
         // Comando principal /swhitelist
         new CommandAPICommand("swhitelist")
-                .withPermission("swhitelist.use")
+                .withPermission(CommandPermission.OP)
                 .withSubcommand(createAddCommand())
                 .withSubcommand(createRemoveCommand())
                 .withSubcommand(createListCommand())
@@ -41,7 +42,6 @@ public class CommandManager {
     // Crear subcomando add
     private CommandAPICommand createAddCommand() {
         return new CommandAPICommand("add")
-                .withPermission("swhitelist.add")
                 .withArguments(new StringArgument("player"))
                 .executes((sender, args) -> {
                     String player = (String) args.get("player");
@@ -52,7 +52,6 @@ public class CommandManager {
     // Crear subcomando remove
     private CommandAPICommand createRemoveCommand() {
         return new CommandAPICommand("remove")
-                .withPermission("swhitelist.remove")
                 .withArguments(new StringArgument("player"))
                 .executes((sender, args) -> {
                     String player = (String) args.get("player");
@@ -81,7 +80,6 @@ public class CommandManager {
     // Crear subcomando off
     private CommandAPICommand createOffCommand() {
         return new CommandAPICommand("off")
-                .withPermission("swhitelist.off")
                 .executes((sender, args) -> {
                     OffCommand.execute(sender, plugin);
                 });
@@ -90,7 +88,6 @@ public class CommandManager {
     // Crear subcomando lockdown
     private CommandAPICommand createLockdownCommand() {
         return new CommandAPICommand("lockdown")
-                .withPermission("swhitelist.lockdown")
                 .withArguments(new TimeArgument("time"))
                 .withOptionalArguments(new StringArgument("reason"))
                 .executes((sender, args) -> {
@@ -103,7 +100,6 @@ public class CommandManager {
     // Crear subcomando reload
     private CommandAPICommand createReloadCommand() {
         return new CommandAPICommand("reload")
-                .withPermission("swhitelist.reload")
                 .executes((sender, args) -> {
                     ReloadCommand.execute(sender, plugin);
                 });

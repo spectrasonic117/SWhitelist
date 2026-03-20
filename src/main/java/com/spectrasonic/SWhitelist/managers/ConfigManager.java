@@ -74,25 +74,25 @@ public class ConfigManager {
 
     // Obtener prefijo del plugin
     public String getPrefix() {
-        return getString("prefix", "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> ");
+        return getString("prefix");
     }
 
     // Obtener configuración de base de datos
     public String getDatabaseFile() {
-        return getString("database.file", "swhitelist.db");
+        return getString("database.file");
     }
 
     // Obtener configuración de lockdown
     public String getLockdownKickMessage() {
-        return getString("lockdown.kick-message", "<red>El servidor está en modo lockdown.</red>");
+        return getString("lockdown.kick-message");
     }
 
     public String getLockdownCountdownSound() {
-        return getString("lockdown.countdown-sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
+        return getString("lockdown.countdown-sound");
     }
 
     public String getLockdownKickMode() {
-        return getString("lockdown.kick-mode", "notlisted");
+        return getString("lockdown.kick-mode");
     }
 
     // Obtener formatos de tiempo

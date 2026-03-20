@@ -6,16 +6,16 @@ prefix: "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> "
 
 # Configuración de base de datos (solo SQLite)
 database:
-  file: "swhitelist.db"
+  file: "database.db"
 
 # Configuración de lockdown
 lockdown:
   # Mensaje de kick cuando el servidor está en lockdown
   kick-message: "<red>El servidor está en modo lockdown.</red>"
-  
+
   # Sonido de countdown (usar nombres de Sound de Bukkit)
   countdown-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
-  
+
   # Modo de kick durante lockdown:
   # - notlisted: Kickear solo jugadores no en la whitelist
   # - everyone: Kickear a todos los jugadores
