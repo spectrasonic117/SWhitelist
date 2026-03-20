@@ -24,28 +24,27 @@ public final class Main extends JavaPlugin {
     public void onEnable() {
         // Inicializar MiniMessage
         this.miniMessage = MiniMessage.miniMessage();
-        
+
         // Inicializar managers
         this.configManager = new ConfigManager(this);
         this.messageManager = new MessageManager(this);
-        
+
         // Inicializar base de datos
         try {
             this.databaseManager = new DatabaseManager(this);
-            getLogger().info("Base de datos SQLite conectada exitosamente.");
+            getLogger().config("Base de datos SQLite conectada exitosamente.");
         } catch (Exception e) {
             getLogger().severe("Error al conectar con la base de datos: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        
+
         // Inicializar managers de comandos y eventos
         this.commandManager = new CommandManager(this);
         this.eventManager = new EventManager(this);
-        
+
         // Mensaje de inicio
         MessageUtils.sendStartupMessage(this);
-        getLogger().info("SWhitelist ha sido habilitado correctamente.");
     }
 
     @Override
@@ -54,7 +53,7 @@ public final class Main extends JavaPlugin {
         if (databaseManager != null) {
             databaseManager.closeConnection();
         }
-        
+
         // Mensaje de cierre
         MessageUtils.sendShutdownMessage(this);
         getLogger().info("SWhitelist ha sido deshabilitado.");

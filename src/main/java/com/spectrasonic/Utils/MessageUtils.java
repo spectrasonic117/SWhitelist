@@ -14,8 +14,8 @@ public final class MessageUtils {
 
     private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(MessageUtils.class);
     public static final String DIVIDER = "<gray>----------------------------------------</gray>";
-    public static final String PREFIX = "<gray>[<gold>" + plugin.getPluginMeta().getName()
-            + "</gold>]</gray> <green>»</green> ";
+    public static final String PREFIX = "<dark_gray>[<aqua>" + plugin.getPluginMeta().getName()
+            + "</aqua>]</dark_gray> <green>»</green> ";
 
     // Alert Prefixes
 
@@ -51,12 +51,12 @@ public final class MessageUtils {
     }
 
     public static void sendOnlyPlayerCommandMessage(CommandSender sender) {
-        miniMessage.deserialize(
-                PREFIX + "<#ff003c><b>[x]</b> <#9e9893>Only players can use this command<#9e9893>");
+        sender.sendMessage(miniMessage.deserialize(
+                PREFIX + "<#ff003c><b>[x]</b> <#9e9893>Only players can use this command<#9e9893>"));
     }
 
     public static void configReloadedMessage(CommandSender sender) {
-        miniMessage.deserialize(PREFIX + "<green><b>[✔️]</b> <#9e9893>Config Reloaded</#9e9893>");
+        sender.sendMessage(miniMessage.deserialize(PREFIX + "<green><b>[✔️]</b> <#9e9893>Config Reloaded</#9e9893>"));
     }
 
     // Alert Messages

@@ -18,9 +18,6 @@ public class EventManager {
     private void registerEvents() {
         plugin.getServer().getPluginManager().registerEvents(
                 new WhitelistEvent(plugin),
-                plugin
-        );
-        
-        plugin.getLogger().info("Eventos registrados correctamente.");
+                plugin);
     }
 }

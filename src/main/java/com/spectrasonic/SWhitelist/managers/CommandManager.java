@@ -23,6 +23,7 @@ public class CommandManager {
     private void registerCommands() {
         // Comando principal /swhitelist
         new CommandAPICommand("swhitelist")
+                .withAliases("sw")
                 .withPermission(CommandPermission.OP)
                 .withSubcommand(createAddCommand())
                 .withSubcommand(createRemoveCommand())

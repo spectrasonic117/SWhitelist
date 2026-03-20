@@ -14,8 +14,8 @@ message:
   not-in-database: "El jugador <white>%player%</white> no está en la whitelist."
 
   # Comandos - On/Off
-  success-whitelist-on: "La whitelist ha sido <green>activada</green>."
-  success-whitelist-off: "La whitelist ha sido <red>esactivada</red>."
+  success-whitelist-on: "La whitelist ha sido <green>Activada</green>."
+  success-whitelist-off: "La whitelist ha sido <red>Dsactivada</red>."
   whitelist-already-enabled: "La whitelist ya está activada."
   whitelist-already-disabled: "La whitelist ya está desactivada."
 

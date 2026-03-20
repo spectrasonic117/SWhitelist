@@ -69,11 +69,13 @@
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-minimessage</artifactId>
             <version>${adventure.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
             <version>${adventure.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- SQLite -->
@@ -145,11 +147,6 @@
                                 <relocation>
                                     <pattern>org.sqlite</pattern>
                                     <shadedPattern>com.spectrasonic.SWhitelist.libs.sqlite</shadedPattern>
-                                </relocation>
-                                <!-- Relocar Adventure para evitar conflictos -->
-                                <relocation>
-                                    <pattern>net.kyori</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                             <filters>
