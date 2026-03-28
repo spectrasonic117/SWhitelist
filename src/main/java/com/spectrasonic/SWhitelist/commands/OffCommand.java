@@ -19,6 +19,7 @@ public class OffCommand {
 
             // Deshabilitar whitelist
             plugin.getDatabaseManager().disableWhitelist();
+            plugin.setLockdownActive(false);
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("success-whitelist-off"));
 
         } catch (SQLException e) {

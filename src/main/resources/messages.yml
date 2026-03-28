@@ -6,7 +6,7 @@ message:
   prefix: "<dark_gray>[<gradient:#22d2d4:#3ac990><b>SWhitelist</gradient>]</dark_gray> <white>»</white> "
 
   # Comandos - Agregar
-  success-added: "Agregasteo a <white>%player%</white> a la whitelist."
+  success-added: "Agregaste a <white>%player%</white> a la whitelist."
   already-exists: "El jugador <white>%player%</white> ya está en la whitelist."
 
   # Comandos - Remover

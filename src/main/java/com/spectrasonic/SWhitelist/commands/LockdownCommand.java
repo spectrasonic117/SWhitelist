@@ -103,6 +103,9 @@ public class LockdownCommand {
             // Habilitar whitelist
             plugin.getDatabaseManager().enableWhitelist();
 
+            // Activar flag de lockdown para mensajes de kick
+            plugin.setLockdownActive(true);
+
             // Anunciar lockdown exitoso
             MessageUtils.BroadcastMessage(plugin.getMessageManager().getMessage("lockdown-success"));
 
@@ -117,6 +120,9 @@ public class LockdownCommand {
                 case "off" -> plugin.getLogger().info("Lockdown ejecutado sin kickear jugadores.");
                 default -> plugin.getLogger().warning("Modo de kick inválido: " + kickMode);
             }
+
+            // Desactivar flag de lockdown después de kickear
+            plugin.setLockdownActive(false);
 
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al ejecutar lockdown: " + e.getMessage());

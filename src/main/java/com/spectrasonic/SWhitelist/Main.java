@@ -7,10 +7,12 @@ import com.spectrasonic.SWhitelist.managers.EventManager;
 import com.spectrasonic.SWhitelist.managers.MessageManager;
 import com.spectrasonic.Utils.MessageUtils;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
+@Setter
 public final class Main extends JavaPlugin {
 
     private ConfigManager configManager;
@@ -19,6 +21,7 @@ public final class Main extends JavaPlugin {
     private CommandManager commandManager;
     private EventManager eventManager;
     private MiniMessage miniMessage;
+    private boolean lockdownActive = false;
 
     @Override
     public void onEnable() {

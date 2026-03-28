@@ -21,7 +21,7 @@ public class SWhitelistCommand {
                 .withSubcommand(createReloadCommand(plugin))
                 .executes((sender, args) -> {
                     plugin.getMessageManager().getMessageList("help-menu")
-                            .forEach(line -> MessageUtils.noPrefixMessage(sender, line));
+                            .forEach(line -> MessageUtils.RawMessage(sender, line));
                 })
                 .register();
     }

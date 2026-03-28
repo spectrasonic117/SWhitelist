@@ -37,7 +37,7 @@ public final class MessageUtils {
         sender.sendMessage(miniMessage.deserialize(PREFIX + message));
     }
 
-    public static void noPrefixMessage(CommandSender sender, String message) {
+    public static void RawMessage(CommandSender sender, String message) {
         sender.sendMessage(miniMessage.deserialize(message));
     }
 

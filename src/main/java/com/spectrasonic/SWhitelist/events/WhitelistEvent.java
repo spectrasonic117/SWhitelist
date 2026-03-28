@@ -41,8 +41,13 @@ public class WhitelistEvent implements Listener {
 
             // Verificar si el jugador está en la whitelist
             if (!plugin.getDatabaseManager().isWhitelisted(playerName)) {
-                // Kickear al jugador con mensaje personalizado
-                String kickMessage = plugin.getConfigManager().getLockdownKickMessage();
+                // Seleccionar mensaje de kick según modo lockdown
+                String kickMessage;
+                if (plugin.isLockdownActive()) {
+                    kickMessage = plugin.getConfigManager().getLockdownKickMessage();
+                } else {
+                    kickMessage = plugin.getMessageManager().getMessage("whitelist-kick");
+                }
                 event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, 
                         miniMessage.deserialize(kickMessage));
             }
