@@ -12,7 +12,7 @@ public class AddCommand {
     public static void execute(CommandSender sender, String player, Main plugin) {
         // Validar longitud del nombre del jugador
         if (player.length() < 3) {
-            MessageUtils.sendMessage(sender, plugin.getMessageManager().getMessage("error-limit"));
+            MessageUtils.alertMessage(sender, plugin.getMessageManager().getMessage("error-limit"));
             return;
         }
 
