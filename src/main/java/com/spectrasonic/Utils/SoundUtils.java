@@ -5,19 +5,18 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 
-public final class SoundUtils {
+import lombok.experimental.UtilityClass;
 
-    private SoundUtils() {
-        // Private constructor to prevent instantiation
-    }
+@SuppressWarnings("all")
+@UtilityClass
+public final class SoundUtils {
 
     public static void playerSound(Player player, Sound sound, float volume, float pitch) {
         player.playSound(player, sound, SoundCategory.MASTER, volume, pitch);
     }
 
     public static void broadcastPlayerSound(Sound sound, float volume, float pitch) {
-        Bukkit.getOnlinePlayers().forEach(player -> 
-            player.playSound(player, sound, SoundCategory.MASTER, volume, pitch)
-        );
+        Bukkit.getOnlinePlayers()
+                .forEach(player -> player.playSound(player, sound, SoundCategory.MASTER, volume, pitch));
     }
 }

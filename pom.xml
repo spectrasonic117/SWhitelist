@@ -5,7 +5,7 @@
 
     <groupId>com.spectrasonic</groupId>
     <artifactId>SWhitelist</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -85,6 +85,14 @@
             <version>${sqlite.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- JDA Discord Bot -->
+        <dependency>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>5.3.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -143,6 +151,48 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>net.dv8tion</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jda</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okhttp3</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.okhttp3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okio</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.okio</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.collections4</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.collections4</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.neovisionaries</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.nvws</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>club.minnced</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.minnced</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>gnu.trove</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.trove</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.iwebpp</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.iwebpp</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jetbrains.annotations</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jetbrains</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

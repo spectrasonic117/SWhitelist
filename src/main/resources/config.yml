@@ -29,3 +29,43 @@ formats:
   second: "segundo(s)"
   minute: "minuto(s)"
   hour: "hora(s)"
+
+# Configuración de integración con Discord
+discord:
+  # Habilitar/deshabilitar la integración con Discord
+  enabled: false
+
+  # Token del bot de Discord (obtener en https://discord.com/developers/applications)
+  bot-token: ""
+
+  # ID del servidor (guild) de Discord
+  guild-id: ""
+
+  # ID del canal donde se enviarán notificaciones y se aceptarán comandos
+  channel-id: ""
+
+  # Roles de Discord autorizados por ID (activa modo desarrollador en Discord para copiar IDs)
+  # admin: acceso total a todos los comandos de whitelist
+  # user: solo puede agregarse a la whitelist (comando /whitelist add)
+  roles:
+    admin:
+      - ""
+    user:
+      - ""
+
+  # Notificaciones: qué eventos se notifican en Discord
+  notifications:
+    whitelist-add: true
+    whitelist-remove: true
+    whitelist-on: true
+    whitelist-off: true
+    lockdown: true
+
+  # Configuración de embeds de Discord
+  embed:
+    color-success: "#22d2d4"
+    color-error: "#FF5555"
+    color-info: "#3ac990"
+    color-warning: "#FFAA00"
+    color-lockdown: "#FF0000"
+    footer-text: "SWhitelist"

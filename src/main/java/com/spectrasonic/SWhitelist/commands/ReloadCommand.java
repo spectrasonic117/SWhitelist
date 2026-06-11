@@ -15,6 +15,11 @@ public class ReloadCommand {
             // Recargar mensajes
             plugin.getMessageManager().reloadMessages();
             
+            // Recargar Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().reload();
+            }
+            
             // Enviar mensaje de éxito
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("reload-success"));
             

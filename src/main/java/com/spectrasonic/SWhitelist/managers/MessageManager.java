@@ -62,4 +62,15 @@ public class MessageManager {
     public String getPrefix() {
         return getMessage("prefix");
     }
+
+    // Obtener mensaje de Discord
+    public String getDiscordMessage(String key) {
+        return messages.getString("discord." + key, key);
+    }
+
+    // Obtener mensaje de Discord con placeholder
+    public String getDiscordMessage(String key, String placeholder, String value) {
+        String message = messages.getString("discord." + key, key);
+        return message.replace("%" + placeholder + "%", value);
+    }
 }

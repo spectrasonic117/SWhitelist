@@ -13,6 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@SuppressWarnings("all")
 public class LockdownCommand {
 
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
@@ -42,15 +43,14 @@ public class LockdownCommand {
                     plugin.getConfigManager().getTimeFormat("now"),
                     plugin.getConfigManager().getTimeFormat("second"),
                     plugin.getConfigManager().getTimeFormat("minute"),
-                    plugin.getConfigManager().getTimeFormat("hour")
-            );
+                    plugin.getConfigManager().getTimeFormat("hour"));
 
             // Anunciar lockdown
             String message = plugin.getMessageManager().getMessage("lockdown-announce", "duration", duration);
             MessageUtils.alertMessage(sender, message);
 
             // Programar countdown
-            scheduleCountdown(sender, delayMillis, reason, plugin);
+            scheduleCountdown(sender, delayMillis, reason, duration, plugin);
 
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al iniciar lockdown: " + e.getMessage());
@@ -59,7 +59,8 @@ public class LockdownCommand {
     }
 
     // Programar countdown de lockdown
-    private static void scheduleCountdown(CommandSender sender, long delayMillis, String reason, Main plugin) {
+    private static void scheduleCountdown(CommandSender sender, long delayMillis, String reason, String duration,
+            Main plugin) {
         long startTime = System.currentTimeMillis();
         AtomicBoolean lockdownExecuted = new AtomicBoolean(false);
 
@@ -71,7 +72,7 @@ public class LockdownCommand {
 
                 // Anunciar countdown en intervalos específicos
                 if (remaining > 0 && (remaining == 30 || remaining == 15 || (remaining <= 5 && remaining > 0))) {
-                    String countdownMessage = plugin.getMessageManager().getMessage("lockdown-countdown", 
+                    String countdownMessage = plugin.getMessageManager().getMessage("lockdown-countdown",
                             "time", String.valueOf(remaining));
                     MessageUtils.BroadcastMessage(countdownMessage);
 
@@ -89,7 +90,7 @@ public class LockdownCommand {
 
                 // Ejecutar lockdown cuando el tiempo se agote
                 if (elapsed >= delayMillis && !lockdownExecuted.get()) {
-                    executeLockdown(reason, plugin);
+                    executeLockdown(reason, duration, sender.getName(), plugin);
                     lockdownExecuted.set(true);
                     this.cancel();
                 }
@@ -98,7 +99,7 @@ public class LockdownCommand {
     }
 
     // Ejecutar lockdown
-    private static void executeLockdown(String reason, Main plugin) {
+    private static void executeLockdown(String reason, String duration, String actor, Main plugin) {
         try {
             // Habilitar whitelist
             plugin.getDatabaseManager().enableWhitelist();
@@ -108,6 +109,11 @@ public class LockdownCommand {
 
             // Anunciar lockdown exitoso
             MessageUtils.BroadcastMessage(plugin.getMessageManager().getMessage("lockdown-success"));
+
+            // Notificar a Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().notifyLockdown(duration, reason, actor);
+            }
 
             // Kickear jugadores según configuración
             String kickMode = plugin.getConfigManager().getLockdownKickMode();
@@ -133,8 +139,8 @@ public class LockdownCommand {
     private static void kickNotListedPlayers(String kickMessage, Main plugin) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             try {
-                if (!player.hasPermission("swhitelist.bypass") && 
-                    !plugin.getDatabaseManager().isWhitelisted(player.getName())) {
+                if (!player.hasPermission("swhitelist.bypass") &&
+                        !plugin.getDatabaseManager().isWhitelisted(player.getName())) {
                     player.kick(miniMessage.deserialize(kickMessage));
                 }
             } catch (SQLException e) {
