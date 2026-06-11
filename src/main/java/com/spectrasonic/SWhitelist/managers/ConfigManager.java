@@ -125,6 +125,10 @@ public class ConfigManager {
         return getStringList("discord.roles.user");
     }
 
+    public String getDiscordWhitelistedRoleId() {
+        return getString("discord.whitelisted-rol");
+    }
+
     public boolean isDiscordNotificationEnabled(String key) {
         return getBoolean("discord.notifications." + key, true);
     }

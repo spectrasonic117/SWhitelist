@@ -44,6 +44,9 @@ discord:
   # ID del canal donde se enviarán notificaciones y se aceptarán comandos
   channel-id: ""
 
+  # ID de un rol de Discord que se asignará al usuario cuando se agrega a la whitelist
+  whitelisted-rol: ""
+
   # Roles de Discord autorizados por ID (activa modo desarrollador en Discord para copiar IDs)
   # admin: acceso total a todos los comandos de whitelist
   # user: solo puede agregarse a la whitelist (comando /whitelist add)

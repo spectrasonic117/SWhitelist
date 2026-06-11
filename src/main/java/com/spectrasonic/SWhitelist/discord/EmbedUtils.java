@@ -14,10 +14,10 @@ public final class EmbedUtils {
     }
 
     public static MessageEmbed createAddEmbed(String player, String actor, Main plugin) {
-        String title = plugin.getMessageManager().getDiscordMessage("embed-title-add");
-        String actorLine = plugin.getMessageManager().getDiscordMessage("added-by", "actor", actor);
-        String playerLabel = plugin.getMessageManager().getDiscordMessage("embed-field-player");
-        String actorLabel = plugin.getMessageManager().getDiscordMessage("embed-field-actor");
+        String title = "✅ Jugador agregado a la Whitelist";
+        String actorLine = "Agregado por " + actor;
+        String playerLabel = "Player";
+        String actorLabel = "By";
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-success"));
 
         return new EmbedBuilder()
@@ -26,16 +26,16 @@ public final class EmbedUtils {
                 .addField(playerLabel, player, true)
                 .addField(actorLabel, actor, true)
                 .addField("", actorLine, false)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }
 
     public static MessageEmbed createRemoveEmbed(String player, String actor, Main plugin) {
-        String title = plugin.getMessageManager().getDiscordMessage("embed-title-remove");
-        String actorLine = plugin.getMessageManager().getDiscordMessage("removed-by", "actor", actor);
-        String playerLabel = plugin.getMessageManager().getDiscordMessage("embed-field-player");
-        String actorLabel = plugin.getMessageManager().getDiscordMessage("embed-field-actor");
+        String title = "🗑️ Jugador eliminado de la Whitelist";
+        String actorLine = "Removido por " + actor;
+        String playerLabel = "Player";
+        String actorLabel = "Por";
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-warning"));
 
         return new EmbedBuilder()
@@ -44,22 +44,22 @@ public final class EmbedUtils {
                 .addField(playerLabel, player, true)
                 .addField(actorLabel, actor, true)
                 .addField("", actorLine, false)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }
 
     public static MessageEmbed createListEmbed(List<String> players, int page, int totalPages, Main plugin) {
-        String title = plugin.getMessageManager().getDiscordMessage("embed-title-list");
-        String countLabel = plugin.getMessageManager().getDiscordMessage("embed-field-count");
-        String pageLabel = plugin.getMessageManager().getDiscordMessage("embed-field-page");
-        String noPlayers = plugin.getMessageManager().getDiscordMessage("status-no-players");
+        String title = "📋 Jugadores en la Whitelist";
+        String countLabel = "Jugadores Totales";
+        String pageLabel = "Página";
+        String noPlayers = "No hay jugadores en la whitelist.";
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-info"));
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle(title)
                 .setColor(color)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now());
 
         if (players.isEmpty()) {
@@ -81,12 +81,12 @@ public final class EmbedUtils {
     }
 
     public static MessageEmbed createStatusEmbed(boolean enabled, boolean lockdown, int playerCount, Main plugin) {
-        String title = plugin.getMessageManager().getDiscordMessage("embed-title-status");
-        String statusLabel = plugin.getMessageManager().getDiscordMessage("embed-field-status");
-        String countLabel = plugin.getMessageManager().getDiscordMessage("embed-field-count");
-        String enabledMsg = plugin.getMessageManager().getDiscordMessage("status-enabled");
-        String disabledMsg = plugin.getMessageManager().getDiscordMessage("status-disabled");
-        String lockdownMsg = plugin.getMessageManager().getDiscordMessage("status-lockdown-active");
+        String title = "📊 Estado de la Whitelist";
+        String statusLabel = "Estado";
+        String countLabel = "Jugadores Totales";
+        String enabledMsg = "Habilitada";
+        String disabledMsg = "deshabilitada";
+        String lockdownMsg = "Lockdown está activa";
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-info"));
 
         StringBuilder status = new StringBuilder(enabled ? enabledMsg : disabledMsg);
@@ -99,17 +99,15 @@ public final class EmbedUtils {
                 .setColor(color)
                 .addField(statusLabel, status.toString(), false)
                 .addField(countLabel, String.valueOf(playerCount), true)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }
 
     public static MessageEmbed createToggleEmbed(boolean enabled, String actor, Main plugin) {
-        String titleKey = enabled ? "embed-title-on" : "embed-title-off";
-        String actorKey = enabled ? "enabled-by" : "disabled-by";
-        String title = plugin.getMessageManager().getDiscordMessage(titleKey);
-        String actorLine = plugin.getMessageManager().getDiscordMessage(actorKey, "actor", actor);
-        String actorLabel = plugin.getMessageManager().getDiscordMessage("embed-field-actor");
+        String title = enabled ? "🟢 Whitelist Habilitada" : "🔴 Whitelist Deshabilitada";
+        String actorLine = enabled ? "Habilitado por " + actor : "Deshabilitado por " + actor;
+        String actorLabel = "Por";
         Color color = parseColor(enabled
                 ? plugin.getConfigManager().getDiscordEmbedColor("color-success")
                 : plugin.getConfigManager().getDiscordEmbedColor("color-warning"));
@@ -119,17 +117,17 @@ public final class EmbedUtils {
                 .setColor(color)
                 .addField(actorLabel, actor, true)
                 .addField("", actorLine, false)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }
 
     public static MessageEmbed createLockdownEmbed(String duration, String reason, String actor, Main plugin) {
-        String title = plugin.getMessageManager().getDiscordMessage("embed-title-lockdown");
-        String durationLabel = plugin.getMessageManager().getDiscordMessage("embed-field-duration");
-        String reasonLabel = plugin.getMessageManager().getDiscordMessage("embed-field-reason");
-        String actorLabel = plugin.getMessageManager().getDiscordMessage("embed-field-actor");
-        String actorLine = plugin.getMessageManager().getDiscordMessage("lockdown-by", "actor", actor);
+        String title = "🔒 Lockdown Iniciado";
+        String durationLabel = "Duración";
+        String reasonLabel = "Razón";
+        String actorLabel = "Por";
+        String actorLine = "Lockdown por " + actor;
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-lockdown"));
 
         EmbedBuilder embed = new EmbedBuilder()
@@ -138,7 +136,7 @@ public final class EmbedUtils {
                 .addField(durationLabel, duration, true)
                 .addField(actorLabel, actor, true)
                 .addField("", actorLine, false)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now());
 
         if (reason != null && !reason.isEmpty()) {
@@ -155,7 +153,7 @@ public final class EmbedUtils {
                 .setTitle("Error")
                 .setColor(color)
                 .setDescription(message)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }
@@ -164,10 +162,10 @@ public final class EmbedUtils {
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-success"));
 
         return new EmbedBuilder()
-                .setTitle("Success")
+                .setTitle("Éxito")
                 .setColor(color)
                 .setDescription(message)
-                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter())
+                .setFooter("SWhitelist")
                 .setTimestamp(Instant.now())
                 .build();
     }

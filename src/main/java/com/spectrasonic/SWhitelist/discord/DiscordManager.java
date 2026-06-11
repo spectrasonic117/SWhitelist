@@ -5,15 +5,21 @@ import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 
 @Getter
 public class DiscordManager {
@@ -26,6 +32,12 @@ public class DiscordManager {
         this.plugin = plugin;
         init();
     }
+
+    private static final Set<CacheFlag> DISABLED_CACHE_FLAGS = EnumSet.of(
+            CacheFlag.VOICE_STATE,
+            CacheFlag.EMOJI,
+            CacheFlag.STICKER,
+            CacheFlag.SCHEDULED_EVENTS);
 
     private void init() {
         if (!plugin.getConfigManager().isDiscordEnabled()) {
@@ -40,7 +52,10 @@ public class DiscordManager {
         }
 
         try {
-            jda = JDABuilder.createDefault(token, EnumSet.noneOf(GatewayIntent.class))
+            jda = JDABuilder.createDefault(token, EnumSet.of(
+                    GatewayIntent.GUILD_MEMBERS))
+                    .disableCache(DISABLED_CACHE_FLAGS)
+                    .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .addEventListeners(new DiscordSlashCommandListener(plugin))
                     .build();
 
@@ -133,6 +148,41 @@ public class DiscordManager {
             return;
         MessageEmbed embed = EmbedUtils.createLockdownEmbed(duration, reason, actor, plugin);
         sendNotification(embed);
+    }
+
+    public void assignWhitelistedRole(Member member) {
+        if (!connected)
+            return;
+
+        String roleId = plugin.getConfigManager().getDiscordWhitelistedRoleId();
+        if (roleId == null || roleId.isEmpty()) {
+            plugin.getLogger().warning("whitelisted-rol no configurado en config.yml");
+            return;
+        }
+
+        String guildId = plugin.getConfigManager().getDiscordGuildId();
+        if (guildId == null || guildId.isEmpty()) {
+            plugin.getLogger().warning("Discord guild-id no está configurado.");
+            return;
+        }
+
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) {
+            plugin.getLogger().warning("Guild no encontrada con id: " + guildId);
+            return;
+        }
+
+        Role role = guild.getRoleById(roleId);
+        if (role == null) {
+            plugin.getLogger().warning("Rol no encontrado con id: " + roleId);
+            return;
+        }
+
+        guild.modifyMemberRoles(member, Collections.singleton(role))
+                .queue(
+                        success -> plugin.getLogger()
+                                .info("Rol " + role.getName() + " asignado a " + member.getUser().getName()),
+                        error -> plugin.getLogger().warning("Error al asignar rol: " + error.getMessage()));
     }
 
     private boolean canNotify(String notificationKey) {

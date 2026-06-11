@@ -22,10 +22,12 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         String subcommand = event.getSubcommandName();
-        if (subcommand == null) return;
+        if (subcommand == null)
+            return;
 
         Member member = event.getMember();
-        if (member == null) return;
+        if (member == null)
+            return;
 
         String channelId = plugin.getConfigManager().getDiscordChannelId();
         if (channelId != null && !channelId.isEmpty() && !event.getChannel().getId().equals(channelId)) {
@@ -67,7 +69,8 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
     private void handleAdd(SlashCommandInteractionEvent event) {
         String player = event.getOption("player", null, option -> option.getAsString().trim());
-        if (player == null || player.isEmpty()) return;
+        if (player == null || player.isEmpty())
+            return;
         if (player.length() < 3) {
             String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
@@ -85,6 +88,13 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 plugin.getDatabaseManager().addPlayer(player);
                 String actor = event.getUser().getName();
                 hook.sendMessageEmbeds(EmbedUtils.createAddEmbed(player, actor, plugin)).queue();
+                plugin.getLogger().info("Agregado a whitelist: " + player);
+
+                // Asignar rol de whitelist al miembro que ejecutó el comando
+                Member member = event.getMember();
+                if (member != null) {
+                    plugin.getDiscordManager().assignWhitelistedRole(member);
+                }
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord add error: " + e.getMessage());
                 String msg = plugin.getMessageManager().getDiscordMessage("error-database");
@@ -95,7 +105,8 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
     private void handleRemove(SlashCommandInteractionEvent event) {
         String player = event.getOption("player", null, option -> option.getAsString().trim());
-        if (player == null || player.isEmpty()) return;
+        if (player == null || player.isEmpty())
+            return;
         if (player.length() < 3) {
             String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
@@ -113,6 +124,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 plugin.getDatabaseManager().removePlayer(player);
                 String actor = event.getUser().getName();
                 hook.sendMessageEmbeds(EmbedUtils.createRemoveEmbed(player, actor, plugin)).queue();
+                plugin.getLogger().info("Removido de whitelist: " + player);
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord remove error: " + e.getMessage());
                 String msg = plugin.getMessageManager().getDiscordMessage("error-database");
@@ -125,12 +137,10 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         event.deferReply(true).queue(hook -> {
             try {
                 List<String> allPlayers = plugin.getDatabaseManager().getAllPlayers();
-                List<MessageEmbed> pages = paginatePlayers(allPlayers, 25);
-                if (pages.isEmpty()) {
-                    hook.sendMessageEmbeds(pages.get(0)).queue();
-                } else if (pages.size() == 1) {
-                    hook.sendMessageEmbeds(pages.get(0)).queue();
+                if (allPlayers.isEmpty()) {
+                    hook.sendMessageEmbeds(EmbedUtils.createListEmbed(allPlayers, 1, 1, plugin)).queue();
                 } else {
+                    List<MessageEmbed> pages = paginatePlayers(allPlayers, 25);
                     hook.sendMessageEmbeds(pages.get(0)).queue();
                 }
             } catch (SQLException e) {
@@ -158,13 +168,15 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
     private boolean isAdmin(Member member) {
         List<String> adminRoleIds = plugin.getConfigManager().getDiscordAdminRoles();
-        if (adminRoleIds.isEmpty()) return false;
+        if (adminRoleIds.isEmpty())
+            return false;
         return hasMatchingRole(member, adminRoleIds);
     }
 
     private boolean isUser(Member member) {
         List<String> userRoleIds = plugin.getConfigManager().getDiscordUserRoles();
-        if (userRoleIds.isEmpty()) return false;
+        if (userRoleIds.isEmpty())
+            return false;
         return hasMatchingRole(member, userRoleIds);
     }
 
@@ -178,9 +190,6 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     }
 
     private List<MessageEmbed> paginatePlayers(List<String> players, int perPage) {
-        if (players.isEmpty()) {
-            return List.of(EmbedUtils.createListEmbed(players, 1, 1, plugin));
-        }
         List<MessageEmbed> pages = new ArrayList<>();
         int totalPages = (int) Math.ceil((double) players.size() / perPage);
         for (int i = 0; i < totalPages; i++) {

@@ -192,6 +192,10 @@
                                     <pattern>org.jetbrains.annotations</pattern>
                                     <shadedPattern>com.spectrasonic.SWhitelist.libs.jetbrains</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>net.dv8tion.jda.api.utils</pattern>
+                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jda.api.utils</shadedPattern>
+                                </relocation>
                             </relocations>
                             <filters>
                                 <filter>
