@@ -29,6 +29,11 @@ public class RemoveCommand {
             String message = plugin.getMessageManager().getMessage("success-removed", "player", player);
             MessageUtils.successMessage(sender, message);
 
+            // Notificar a Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().notifyPlayerRemoved(player, sender.getName());
+            }
+
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al remover jugador de la whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));

@@ -29,6 +29,11 @@ public class AddCommand {
             String message = plugin.getMessageManager().getMessage("success-added", "player", player);
             MessageUtils.successMessage(sender, message);
 
+            // Notificar a Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().notifyPlayerAdded(player, sender.getName());
+            }
+
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al agregar jugador a la whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));

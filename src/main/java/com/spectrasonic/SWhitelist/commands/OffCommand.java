@@ -22,6 +22,11 @@ public class OffCommand {
             plugin.setLockdownActive(false);
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("success-whitelist-off"));
 
+            // Notificar a Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().notifyWhitelistToggled(false, sender.getName());
+            }
+
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al deshabilitar whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));

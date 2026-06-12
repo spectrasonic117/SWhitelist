@@ -1,6 +1,7 @@
 package com.spectrasonic.SWhitelist;
 
 import com.spectrasonic.SWhitelist.database.DatabaseManager;
+import com.spectrasonic.SWhitelist.discord.DiscordManager;
 import com.spectrasonic.SWhitelist.managers.CommandManager;
 import com.spectrasonic.SWhitelist.managers.ConfigManager;
 import com.spectrasonic.SWhitelist.managers.EventManager;
@@ -18,6 +19,7 @@ public final class Main extends JavaPlugin {
     private ConfigManager configManager;
     private MessageManager messageManager;
     private DatabaseManager databaseManager;
+    private DiscordManager discordManager;
     private CommandManager commandManager;
     private EventManager eventManager;
     private MiniMessage miniMessage;
@@ -42,6 +44,14 @@ public final class Main extends JavaPlugin {
             return;
         }
 
+        // Inicializar integracion con Discord
+        try {
+            this.discordManager = new DiscordManager(this);
+        } catch (Exception e) {
+            getLogger().warning("No se pudo iniciar la integracion con Discord: " + e.getMessage());
+            this.discordManager = null;
+        }
+
         // Inicializar managers de comandos y eventos
         this.commandManager = new CommandManager(this);
         this.eventManager = new EventManager(this);
@@ -52,6 +62,11 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Cerrar conexion a Discord
+        if (discordManager != null) {
+            discordManager.shutdown();
+        }
+
         // Cerrar conexión a base de datos
         if (databaseManager != null) {
             databaseManager.closeConnection();

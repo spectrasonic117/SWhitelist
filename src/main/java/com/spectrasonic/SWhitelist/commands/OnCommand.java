@@ -21,6 +21,11 @@ public class OnCommand {
             plugin.getDatabaseManager().enableWhitelist();
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("success-whitelist-on"));
 
+            // Notificar a Discord
+            if (plugin.getDiscordManager() != null) {
+                plugin.getDiscordManager().notifyWhitelistToggled(true, sender.getName());
+            }
+
         } catch (SQLException e) {
             plugin.getLogger().severe("Error al habilitar whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));

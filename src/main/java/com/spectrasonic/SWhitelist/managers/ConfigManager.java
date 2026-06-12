@@ -99,4 +99,45 @@ public class ConfigManager {
     public String getTimeFormat(String unit) {
         return getString("formats." + unit, unit);
     }
+
+    // Metodos de configuracion de Discord
+    public boolean isDiscordEnabled() {
+        return getBoolean("discord.enabled", false);
+    }
+
+    public String getDiscordBotToken() {
+        return getString("discord.bot-token");
+    }
+
+    public String getDiscordGuildId() {
+        return getString("discord.guild-id");
+    }
+
+    public String getDiscordChannelId() {
+        return getString("discord.channel-id");
+    }
+
+    public java.util.List<String> getDiscordAdminRoles() {
+        return getStringList("discord.roles.admin");
+    }
+
+    public java.util.List<String> getDiscordUserRoles() {
+        return getStringList("discord.roles.user");
+    }
+
+    public String getDiscordWhitelistedRoleId() {
+        return getString("discord.whitelisted-rol");
+    }
+
+    public boolean isDiscordNotificationEnabled(String key) {
+        return getBoolean("discord.notifications." + key, true);
+    }
+
+    public String getDiscordEmbedColor(String key) {
+        return getString("discord.embed." + key, "#22d2d4");
+    }
+
+    public String getDiscordEmbedFooter() {
+        return getString("discord.embed.footer-text", "SWhitelist");
+    }
 }
