@@ -97,7 +97,9 @@ public class DiscordManager {
                                     new SubcommandData("remove", "Remove a player from the whitelist")
                                             .addOption(OptionType.STRING, "player", "Minecraft username", true),
                                     new SubcommandData("list", "List all whitelisted players"),
-                                    new SubcommandData("status", "Show whitelist status")))
+                                    new SubcommandData("status", "Show whitelist status"),
+                                    new SubcommandData("check", "Check if a player is whitelisted")
+                                            .addOption(OptionType.STRING, "player", "Minecraft username", true)))
                     .queue(
                             success -> plugin.getLogger().info("Discord slash commands registered."),
                             error -> plugin.getLogger()

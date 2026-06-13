@@ -88,3 +88,5 @@ discord:
   error-player-name-short: "Player name must be at least 3 characters."
   error-not-configured: "Discord integration is not properly configured. Contact an administrator."
   error-database: "A database error occurred. Please try again."
+  check-found: "✅ **%player%** está en la whitelist."
+  check-not-found: "❌ **%player%** no está en la whitelist."

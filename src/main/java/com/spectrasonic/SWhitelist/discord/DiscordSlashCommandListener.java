@@ -51,7 +51,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         }
 
         // Non-admin users can only use "add"
-        if (!isAdmin && !"add".equals(subcommand)) {
+        if (!isAdmin && !"add".equals(subcommand) && !"check".equals(subcommand)) {
             String msg = plugin.getMessageManager().getDiscordMessage("error-admin-only");
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true)
@@ -64,6 +64,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
             case "remove" -> handleRemove(event);
             case "list" -> handleList(event);
             case "status" -> handleStatus(event);
+            case "check" -> handleCheck(event);
         }
     }
 
@@ -160,6 +161,31 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 hook.sendMessageEmbeds(EmbedUtils.createStatusEmbed(enabled, lockdown, count, plugin)).queue();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord status error: " + e.getMessage());
+                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
+            }
+        });
+    }
+
+    private void handleCheck(SlashCommandInteractionEvent event) {
+        String player = event.getOption("player", null, option -> option.getAsString().trim());
+        if (player == null || player.isEmpty())
+            return;
+        if (player.length() < 3) {
+            String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
+            event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
+                    .setEphemeral(true).queue();
+            return;
+        }
+
+        event.deferReply(true).queue(hook -> {
+            try {
+                boolean whitelisted = plugin.getDatabaseManager().isWhitelisted(player);
+                hook.sendMessageEmbeds(
+                        EmbedUtils.createCheckEmbed(whitelisted, player, plugin)
+                ).queue();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("Discord check error: " + e.getMessage());
                 String msg = plugin.getMessageManager().getDiscordMessage("error-database");
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
