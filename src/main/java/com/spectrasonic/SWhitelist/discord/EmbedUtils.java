@@ -146,6 +146,30 @@ public final class EmbedUtils {
         return embed.build();
     }
 
+    public static MessageEmbed createCheckEmbed(boolean whitelisted, String player, Main plugin) {
+        String title;
+        String description;
+        Color color;
+
+        if (whitelisted) {
+            title = "✅ " + player + " está en la whitelist";
+            description = "El jugador **" + player + "** se encuentra registrado en la whitelist.";
+            color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-success"));
+        } else {
+            title = "❌ " + player + " no está en la whitelist";
+            description = "El jugador **" + player + "** no se encuentra en la whitelist.";
+            color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-error"));
+        }
+
+        return new EmbedBuilder()
+                .setTitle(title)
+                .setColor(color)
+                .setDescription(description)
+                .setFooter(plugin.getConfigManager().getDiscordEmbedFooter(), null)
+                .setTimestamp(Instant.now())
+                .build();
+    }
+
     public static MessageEmbed createErrorEmbed(String message, Main plugin) {
         Color color = parseColor(plugin.getConfigManager().getDiscordEmbedColor("color-error"));
 
