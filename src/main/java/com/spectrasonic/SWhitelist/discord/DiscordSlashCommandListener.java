@@ -89,6 +89,12 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 plugin.getDatabaseManager().addPlayer(player);
                 String actor = event.getUser().getName();
                 hook.sendMessageEmbeds(EmbedUtils.createAddEmbed(player, actor, plugin)).queue();
+
+                String publicMsg = plugin.getMessageManager().getDiscordMessage("whitelist-added-public")
+                        .replace("%player%", player)
+                        .replace("%actor%", actor);
+                event.getChannel().sendMessageEmbeds(EmbedUtils.createSuccessEmbed(publicMsg, plugin)).queue();
+
                 plugin.getLogger().info("Agregado a whitelist: " + player);
 
                 // Asignar rol de whitelist al miembro que ejecutó el comando

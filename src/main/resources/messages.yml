@@ -90,3 +90,4 @@ discord:
   error-database: "A database error occurred. Please try again."
   check-found: "✅ **%player%** está en la whitelist."
   check-not-found: "❌ **%player%** no está en la whitelist."
+  whitelist-added-public: "✅ El jugador **%player%** fue agregado a la Whitelist."
