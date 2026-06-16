@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -110,7 +109,8 @@ public class DiscordManager {
     public void shutdown() {
         if (jda != null) {
             try {
-                jda.shutdown();
+                jda.shutdownNow();
+                jda.awaitShutdown(java.time.Duration.ofSeconds(5));
             } catch (Exception e) {
                 plugin.getLogger().severe("Error shutting down Discord bot: " + e.getMessage());
             }
@@ -180,11 +180,75 @@ public class DiscordManager {
             return;
         }
 
-        guild.modifyMemberRoles(member, Collections.singleton(role))
+        guild.addRoleToMember(member, role)
                 .queue(
                         success -> plugin.getLogger()
                                 .info("Rol " + role.getName() + " asignado a " + member.getUser().getName()),
                         error -> plugin.getLogger().warning("Error al asignar rol: " + error.getMessage()));
+    }
+
+    public void removeWhitelistedRole(Member member) {
+        if (!connected)
+            return;
+
+        String roleId = plugin.getConfigManager().getDiscordWhitelistedRoleId();
+        if (roleId == null || roleId.isEmpty()) {
+            return;
+        }
+
+        String guildId = plugin.getConfigManager().getDiscordGuildId();
+        if (guildId == null || guildId.isEmpty()) {
+            return;
+        }
+
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) {
+            return;
+        }
+
+        Role role = guild.getRoleById(roleId);
+        if (role == null) {
+            return;
+        }
+
+        guild.removeRoleFromMember(member, role)
+                .queue(
+                        success -> plugin.getLogger()
+                                .info("Rol " + role.getName() + " removido de " + member.getUser().getName()),
+                        error -> plugin.getLogger().warning("Error al remover rol: " + error.getMessage()));
+    }
+
+    public void removeWhitelistedRoleByDiscordId(String discordId) {
+        if (!connected || discordId == null || discordId.isEmpty())
+            return;
+
+        String guildId = plugin.getConfigManager().getDiscordGuildId();
+        if (guildId == null || guildId.isEmpty()) {
+            return;
+        }
+
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) {
+            return;
+        }
+
+        String roleId = plugin.getConfigManager().getDiscordWhitelistedRoleId();
+        if (roleId == null || roleId.isEmpty()) {
+            return;
+        }
+
+        Role role = guild.getRoleById(roleId);
+        if (role == null) {
+            return;
+        }
+
+        guild.retrieveMemberById(discordId).queue(member -> {
+            guild.removeRoleFromMember(member, role)
+                    .queue(
+                            success -> plugin.getLogger()
+                                    .info("Rol " + role.getName() + " removido de " + member.getUser().getName()),
+                            error -> plugin.getLogger().warning("Error al remover rol: " + error.getMessage()));
+        }, error -> plugin.getLogger().warning("No se pudo obtener el miembro con Discord ID: " + discordId));
     }
 
     private boolean canNotify(String notificationKey) {

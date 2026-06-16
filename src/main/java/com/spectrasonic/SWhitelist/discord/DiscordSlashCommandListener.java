@@ -13,6 +13,15 @@ import java.util.List;
 
 public class DiscordSlashCommandListener extends ListenerAdapter {
 
+    private static final String ERROR_WRONG_CHANNEL = "This command can only be used in the designated whitelist channel.";
+    private static final String ERROR_NO_PERMISSION = "You do not have permission to use this command.";
+    private static final String ERROR_ADMIN_ONLY = "This command requires an admin role.";
+    private static final String ERROR_PLAYER_NAME_SHORT = "Player name must be at least 3 characters.";
+    private static final String ERROR_PLAYER_EXISTS = "That player is already whitelisted.";
+    private static final String ERROR_NOT_IN_WHITELIST = "That player is not in the whitelist.";
+    private static final String ERROR_DATABASE = "A database error occurred. Please try again.";
+    private static final String WHITELIST_ADDED_PUBLIC = "✅ El jugador **%player%** fue agregado a la Whitelist.";
+
     private final Main plugin;
 
     public DiscordSlashCommandListener(Main plugin) {
@@ -31,7 +40,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         String channelId = plugin.getConfigManager().getDiscordChannelId();
         if (channelId != null && !channelId.isEmpty() && !event.getChannel().getId().equals(channelId)) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-wrong-channel");
+            String msg = ERROR_WRONG_CHANNEL;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true)
                     .queue();
@@ -43,7 +52,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         boolean isUser = isUser(member);
 
         if (!isAdmin && !isUser) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-no-permission");
+            String msg = ERROR_NO_PERMISSION;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true)
                     .queue();
@@ -52,7 +61,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         // Non-admin users can only use "add"
         if (!isAdmin && !"add".equals(subcommand) && !"check".equals(subcommand)) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-admin-only");
+            String msg = ERROR_ADMIN_ONLY;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true)
                     .queue();
@@ -73,7 +82,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         if (player == null || player.isEmpty())
             return;
         if (player.length() < 3) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
+            String msg = ERROR_PLAYER_NAME_SHORT;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true).queue();
             return;
@@ -82,15 +91,16 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         event.deferReply(true).queue(hook -> {
             try {
                 if (plugin.getDatabaseManager().doesPlayerExist(player)) {
-                    String msg = plugin.getMessageManager().getDiscordMessage("error-player-exists");
+                    String msg = ERROR_PLAYER_EXISTS;
                     hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
                     return;
                 }
-                plugin.getDatabaseManager().addPlayer(player);
+                String discordId = event.getUser().getId();
+                plugin.getDatabaseManager().addPlayer(player, discordId);
                 String actor = event.getUser().getName();
                 hook.sendMessageEmbeds(EmbedUtils.createAddEmbed(player, actor, plugin)).queue();
 
-                String publicMsg = plugin.getMessageManager().getDiscordMessage("whitelist-added-public")
+                String publicMsg = WHITELIST_ADDED_PUBLIC
                         .replace("%player%", player)
                         .replace("%actor%", actor);
                 event.getChannel().sendMessageEmbeds(EmbedUtils.createSuccessEmbed(publicMsg, plugin)).queue();
@@ -104,7 +114,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 }
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord add error: " + e.getMessage());
-                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
         });
@@ -115,7 +125,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         if (player == null || player.isEmpty())
             return;
         if (player.length() < 3) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
+            String msg = ERROR_PLAYER_NAME_SHORT;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true).queue();
             return;
@@ -124,17 +134,26 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         event.deferReply(true).queue(hook -> {
             try {
                 if (!plugin.getDatabaseManager().isWhitelisted(player)) {
-                    String msg = plugin.getMessageManager().getDiscordMessage("error-not-in-whitelist");
+                    String msg = ERROR_NOT_IN_WHITELIST;
                     hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
                     return;
                 }
+
+                // Obtener discord_id antes de eliminar el jugador
+                String discordId = plugin.getDatabaseManager().getDiscordId(player);
+
                 plugin.getDatabaseManager().removePlayer(player);
                 String actor = event.getUser().getName();
                 hook.sendMessageEmbeds(EmbedUtils.createRemoveEmbed(player, actor, plugin)).queue();
                 plugin.getLogger().info("Removido de whitelist: " + player);
+
+                // Quitar rol de Discord si tiene discord_id asociado
+                if (discordId != null && !discordId.isEmpty()) {
+                    plugin.getDiscordManager().removeWhitelistedRoleByDiscordId(discordId);
+                }
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord remove error: " + e.getMessage());
-                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
         });
@@ -152,7 +171,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 }
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord list error: " + e.getMessage());
-                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
         });
@@ -167,7 +186,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 hook.sendMessageEmbeds(EmbedUtils.createStatusEmbed(enabled, lockdown, count, plugin)).queue();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord status error: " + e.getMessage());
-                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
         });
@@ -178,7 +197,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
         if (player == null || player.isEmpty())
             return;
         if (player.length() < 3) {
-            String msg = plugin.getMessageManager().getDiscordMessage("error-player-name-short");
+            String msg = ERROR_PLAYER_NAME_SHORT;
             event.replyEmbeds(EmbedUtils.createErrorEmbed(msg, plugin))
                     .setEphemeral(true).queue();
             return;
@@ -192,7 +211,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 ).queue();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Discord check error: " + e.getMessage());
-                String msg = plugin.getMessageManager().getDiscordMessage("error-database");
+                String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
             }
         });

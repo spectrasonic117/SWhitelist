@@ -35,6 +35,7 @@ public class DatabaseManager {
                         CREATE TABLE IF NOT EXISTS whitelist (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             username TEXT NOT NULL UNIQUE,
+                            discord_id TEXT,
                             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
                     """);
@@ -52,6 +53,13 @@ public class DatabaseManager {
                         INSERT OR IGNORE INTO settings (key, value)
                         VALUES ('whitelist_enabled', 'false')
                     """);
+
+            // Migración: agregar discord_id si no existe
+            try {
+                stmt.execute("ALTER TABLE whitelist ADD COLUMN discord_id TEXT");
+            } catch (SQLException ignored) {
+                // La columna ya existe
+            }
         }
     }
 
@@ -92,9 +100,15 @@ public class DatabaseManager {
 
     // Agregar jugador a la whitelist
     public void addPlayer(String username) throws SQLException {
+        addPlayer(username, null);
+    }
+
+    // Agregar jugador a la whitelist con Discord ID
+    public void addPlayer(String username, String discordId) throws SQLException {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO whitelist (username) VALUES (?)")) {
+                "INSERT INTO whitelist (username, discord_id) VALUES (?, ?)")) {
             stmt.setString(1, username);
+            stmt.setString(2, discordId);
             stmt.executeUpdate();
         }
     }
@@ -111,6 +125,19 @@ public class DatabaseManager {
     // Verificar si un jugador está en la whitelist
     public boolean isWhitelisted(String username) throws SQLException {
         return doesPlayerExist(username);
+    }
+
+    // Obtener Discord ID de un jugador
+    public String getDiscordId(String username) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT discord_id FROM whitelist WHERE username = ?")) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("discord_id");
+            }
+            return null;
+        }
     }
 
     // Obtener todos los jugadores en la whitelist
