@@ -1,5 +1,6 @@
 package com.spectrasonic.SWhitelist;
 
+import com.spectrasonic.SWhitelist.commands.LockdownCommand;
 import com.spectrasonic.SWhitelist.database.DatabaseManager;
 import com.spectrasonic.SWhitelist.discord.DiscordManager;
 import com.spectrasonic.SWhitelist.managers.CommandManager;
@@ -34,7 +35,7 @@ public final class Main extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.messageManager = new MessageManager(this);
 
-        // Inicializar base de datos
+        // Inicializar base de datos (con caché cargado en memoria)
         try {
             this.databaseManager = new DatabaseManager(this);
             getLogger().config("Base de datos SQLite conectada exitosamente.");
@@ -44,17 +45,23 @@ public final class Main extends JavaPlugin {
             return;
         }
 
-        // Inicializar integracion con Discord
-        try {
-            this.discordManager = new DiscordManager(this);
-        } catch (Exception e) {
-            getLogger().warning("No se pudo iniciar la integracion con Discord: " + e.getMessage());
-            this.discordManager = null;
-        }
-
-        // Inicializar managers de comandos y eventos
+        // Inicializar managers de comandos y eventos primero (no dependen de Discord)
         this.commandManager = new CommandManager(this);
         this.eventManager = new EventManager(this);
+
+        // Inicializar Discord de forma asíncrona para no bloquear el startup
+        if (getConfigManager().isDiscordEnabled() && !getConfigManager().getDiscordBotToken().isEmpty()) {
+            getServer().getScheduler().runTaskAsynchronously(this, () -> {
+                try {
+                    this.discordManager = new DiscordManager(this);
+                } catch (Exception e) {
+                    getLogger().warning("No se pudo iniciar la integracion con Discord: " + e.getMessage());
+                    this.discordManager = null;
+                }
+            });
+        } else {
+            this.discordManager = null;
+        }
 
         // Mensaje de inicio
         MessageUtils.sendStartupMessage(this);
@@ -62,12 +69,15 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Cancelar countdown de lockdown activo (evita task leak)
+        LockdownCommand.cancelActiveCountdown();
+
         // Cerrar conexion a Discord
         if (discordManager != null) {
             discordManager.shutdown();
         }
 
-        // Cerrar conexión a base de datos
+        // Cerrar conexión a base de datos y executor
         if (databaseManager != null) {
             databaseManager.closeConnection();
         }

@@ -24,8 +24,8 @@ import java.util.Set;
 public class DiscordManager {
 
     private final Main plugin;
-    private JDA jda;
-    private boolean connected = false;
+    private volatile JDA jda;
+    private volatile boolean connected = false;
 
     public DiscordManager(Main plugin) {
         this.plugin = plugin;
@@ -51,6 +51,8 @@ public class DiscordManager {
         }
 
         try {
+            // Construir JDA sin bloquear — awaitReady() se llama a continuación
+            // ya que este init() ahora corre en un hilo async desde Main.onEnable()
             jda = JDABuilder.createDefault(token, EnumSet.of(
                     GatewayIntent.GUILD_MEMBERS))
                     .disableCache(DISABLED_CACHE_FLAGS)
@@ -58,6 +60,7 @@ public class DiscordManager {
                     .addEventListeners(new DiscordSlashCommandListener(plugin))
                     .build();
 
+            // Bloquea solo el hilo async (no el main thread)
             jda.awaitReady();
             registerSlashCommands();
             connected = true;

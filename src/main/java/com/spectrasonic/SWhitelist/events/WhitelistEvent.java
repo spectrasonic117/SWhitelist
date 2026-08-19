@@ -9,8 +9,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 
-import java.sql.SQLException;
-
 @Getter
 public class WhitelistEvent implements Listener {
 
@@ -22,7 +20,7 @@ public class WhitelistEvent implements Listener {
         this.miniMessage = MiniMessage.miniMessage();
     }
 
-    // Verificar whitelist al intentar login
+    // Verificar whitelist al intentar login — todo se lee del caché en memoria (sin I/O)
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerLogin(PlayerLoginEvent event) {
         Player player = event.getPlayer();
@@ -33,27 +31,22 @@ public class WhitelistEvent implements Listener {
             return;
         }
 
-        try {
-            // Verificar si la whitelist está habilitada
-            if (!plugin.getDatabaseManager().isWhitelistEnabled()) {
-                return;
-            }
+        // Verificar si la whitelist está habilitada (lectura de caché, sin DB)
+        if (!plugin.getDatabaseManager().isWhitelistEnabled()) {
+            return;
+        }
 
-            // Verificar si el jugador está en la whitelist
-            if (!plugin.getDatabaseManager().isWhitelisted(playerName)) {
-                // Seleccionar mensaje de kick según modo lockdown
-                String kickMessage;
-                if (plugin.isLockdownActive()) {
-                    kickMessage = plugin.getConfigManager().getLockdownKickMessage();
-                } else {
-                    kickMessage = plugin.getMessageManager().getMessage("whitelist-kick");
-                }
-                event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, 
-                        miniMessage.deserialize(kickMessage));
+        // Verificar si el jugador está en la whitelist (lectura de caché, sin DB)
+        if (!plugin.getDatabaseManager().isWhitelisted(playerName)) {
+            // Seleccionar mensaje de kick según modo lockdown
+            String kickMessage;
+            if (plugin.isLockdownActive()) {
+                kickMessage = plugin.getConfigManager().getLockdownKickMessage();
+            } else {
+                kickMessage = plugin.getMessageManager().getMessage("whitelist-kick");
             }
-        } catch (SQLException e) {
-            plugin.getLogger().severe("Error al verificar whitelist para " + playerName + ": " + e.getMessage());
-            // En caso de error, permitir el acceso (fail-safe)
+            event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST,
+                    miniMessage.deserialize(kickMessage));
         }
     }
 }
