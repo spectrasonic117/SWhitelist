@@ -77,6 +77,11 @@ public class ConfigManager {
         return getString("prefix");
     }
 
+    // Obtener configuración de whitelist
+    public boolean isWhitelistCaseSensitive() {
+        return getBoolean("whitelist.case-sensitive", true);
+    }
+
     // Obtener configuración de base de datos
     public String getDatabaseFile() {
         return getString("database.file");

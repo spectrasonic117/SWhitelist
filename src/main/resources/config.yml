@@ -4,6 +4,13 @@
 # Prefijo del plugin (formato MiniMessage)
 prefix: "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> "
 
+# Configuración de whitelist
+whitelist:
+  # Si es true, distingue entre mayúsculas y minúsculas (case-sensitive)
+  # true = "Anomaly" y "anomaly" son jugadores diferentes (nombre exacto)
+  # false = ignora mayúsculas/minúsculas (comportamiento clásico de Minecraft)
+  case-sensitive: true
+
 # Configuración de base de datos (solo SQLite)
 database:
   file: "database.db"

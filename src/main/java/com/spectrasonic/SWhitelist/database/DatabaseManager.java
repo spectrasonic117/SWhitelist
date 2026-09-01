@@ -34,7 +34,7 @@ public class DatabaseManager {
             stmt.execute("""
                         CREATE TABLE IF NOT EXISTS whitelist (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            username TEXT NOT NULL UNIQUE,
+                            username TEXT NOT NULL UNIQUE COLLATE BINARY,
                             discord_id TEXT,
                             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         )
@@ -88,10 +88,22 @@ public class DatabaseManager {
         }
     }
 
+    // Obtener collation según config (BINARY = case-sensitive, NOCASE = insensible)
+    private String getCollation() {
+        try {
+            if (plugin.getConfigManager() != null && !plugin.getConfigManager().isWhitelistCaseSensitive()) {
+                return "NOCASE";
+            }
+        } catch (Exception ignored) {
+        }
+        return "BINARY";
+    }
+
     // Verificar si un jugador existe en la whitelist
     public boolean doesPlayerExist(String username) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT COUNT(*) AS count FROM whitelist WHERE username = ?")) {
+        String collation = getCollation();
+        String sql = "SELECT COUNT(*) AS count FROM whitelist WHERE username COLLATE " + collation + " = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             return rs.next() && rs.getInt("count") > 0;
@@ -115,8 +127,9 @@ public class DatabaseManager {
 
     // Remover jugador de la whitelist
     public void removePlayer(String username) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "DELETE FROM whitelist WHERE username = ?")) {
+        String collation = getCollation();
+        String sql = "DELETE FROM whitelist WHERE username COLLATE " + collation + " = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.executeUpdate();
         }
@@ -129,8 +142,9 @@ public class DatabaseManager {
 
     // Obtener Discord ID de un jugador
     public String getDiscordId(String username) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT discord_id FROM whitelist WHERE username = ?")) {
+        String collation = getCollation();
+        String sql = "SELECT discord_id FROM whitelist WHERE username COLLATE " + collation + " = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
