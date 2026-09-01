@@ -134,12 +134,9 @@ public class LockdownCommand {
 
     // Kickear jugadores no en la whitelist — N+1 queries eliminadas, usa caché en memoria
     private static void kickNotListedPlayers(String kickMessage, Main plugin) {
-        // Copia inmutable del Set de jugadores whitelisteados (sin I/O, de un solo snapshot)
-        Set<String> whitelisted = plugin.getDatabaseManager().getWhitelistedPlayersCopy();
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.hasPermission("swhitelist.bypass") &&
-                    !whitelisted.contains(player.getName().toLowerCase())) {
+                    !plugin.getDatabaseManager().isWhitelisted(player.getName())) {
                 player.kick(miniMessage.deserialize(kickMessage));
             }
         }

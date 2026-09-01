@@ -96,12 +96,14 @@ public class DatabaseManager {
                 whitelistEnabled = rs.next() && rs.getString("value").equalsIgnoreCase("true");
             }
 
-            // Cargar todos los nombres en el Set de caché
+            // Cargar todos los nombres en el Set de caché respetando case-sensitive
             whitelistedPlayers.clear();
+            boolean caseSensitive = getCollation().equals("BINARY");
             try (Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist")) {
                 while (rs.next()) {
-                    whitelistedPlayers.add(rs.getString("username").toLowerCase());
+                    String name = rs.getString("username");
+                    whitelistedPlayers.add(caseSensitive ? name : name.toLowerCase());
                 }
             }
         } catch (SQLException e) {
@@ -160,7 +162,8 @@ public class DatabaseManager {
             stmt.setString(2, discordId);
             stmt.executeUpdate();
         }
-        whitelistedPlayers.add(username.toLowerCase());
+        boolean caseSensitive = getCollation().equals("BINARY");
+        whitelistedPlayers.add(caseSensitive ? username : username.toLowerCase());
     }
 
     public void removePlayer(String username) throws SQLException {
@@ -170,7 +173,8 @@ public class DatabaseManager {
             stmt.setString(1, username);
             stmt.executeUpdate();
         }
-        whitelistedPlayers.remove(username.toLowerCase());
+        boolean caseSensitive = collation.equals("BINARY");
+        whitelistedPlayers.remove(caseSensitive ? username : username.toLowerCase());
     }
 
     public void enableWhitelist() throws SQLException {
@@ -238,6 +242,26 @@ public class DatabaseManager {
         }
         players.sort(java.util.Comparator.naturalOrder());
         return players;
+    }
+
+    /**
+     * Verifica si un jugador está en la whitelist leyendo del caché (sin I/O).
+     * Respeta la configuración whitelist.case-sensitive.
+     * Alias de doesPlayerExist pero sin acceso a DB.
+     */
+    public boolean isWhitelisted(String username) {
+        if (username == null) return false;
+        boolean caseSensitive = getCollation().equals("BINARY");
+        String key = caseSensitive ? username : username.toLowerCase();
+        return whitelistedPlayers.contains(key);
+    }
+
+    /**
+     * Retorna una copia inmutable del Set de whitelisteados (snapshot del caché).
+     * Usado por LockdownCommand para evitar N+1 queries.
+     */
+    public Set<String> getWhitelistedPlayersCopy() {
+        return Set.copyOf(whitelistedPlayers);
     }
 
     // ──────────────────────────── Shutdown ────────────────────────────
