@@ -7,30 +7,48 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
 @Getter
 public class DatabaseManager {
 
     private final Main plugin;
-    private Connection connection;
+    private final Connection connection;
+
+    // ── In-memory caches (avoids per-login / per-player DB queries) ──
+    private volatile boolean whitelistEnabled;
+    private final Set<String> whitelistedPlayers = ConcurrentHashMap.newKeySet();
+
+    // ── Single-thread executor for async DB writes ──
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "SWhitelist-DB-Writer");
+        t.setDaemon(true);
+        return t;
+    });
 
     public DatabaseManager(Main plugin) throws SQLException {
         this.plugin = plugin;
-        initializeDatabase();
+        this.connection = initializeDatabase();
+        loadCache();
     }
 
-    // Inicializar base de datos y crear tablas
-    private void initializeDatabase() throws SQLException {
+    // ──────────────────────────── Database initialisation
+    // ────────────────────────────
+
+    private Connection initializeDatabase() throws SQLException {
         File dataFolder = plugin.getDataFolder();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }
 
         File dbFile = new File(dataFolder, "database.db");
-        connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
 
-        // Crear tablas si no existen
-        try (Statement stmt = connection.createStatement()) {
+        try (Statement stmt = conn.createStatement()) {
             stmt.execute("""
                         CREATE TABLE IF NOT EXISTS whitelist (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +66,6 @@ public class DatabaseManager {
                         )
                     """);
 
-            // Insertar configuración por defecto si no existe
             stmt.execute("""
                         INSERT OR IGNORE INTO settings (key, value)
                         VALUES ('whitelist_enabled', 'false')
@@ -61,31 +78,53 @@ public class DatabaseManager {
                 // La columna ya existe
             }
         }
+        return conn;
     }
 
-    // Verificar si la whitelist está habilitada
-    public boolean isWhitelistEnabled() throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT value FROM settings WHERE key = 'whitelist_enabled'")) {
-            ResultSet rs = stmt.executeQuery();
-            return rs.next() && rs.getString("value").equalsIgnoreCase("true");
+    // ──────────────────────────── Cache loading ────────────────────────────
+
+    /**
+     * Carga el estado completo de la whitelist en memoria.
+     * Se llama al iniciar y al recargar.
+     */
+    private void loadCache() {
+        try {
+            // Cargar estado enabled/disabled
+            try (PreparedStatement stmt = connection.prepareStatement(
+                    "SELECT value FROM settings WHERE key = 'whitelist_enabled'")) {
+                ResultSet rs = stmt.executeQuery();
+                whitelistEnabled = rs.next() && rs.getString("value").equalsIgnoreCase("true");
+            }
+
+            // Cargar todos los nombres en el Set de caché
+            whitelistedPlayers.clear();
+            try (Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist")) {
+                while (rs.next()) {
+                    whitelistedPlayers.add(rs.getString("username").toLowerCase());
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Error cargando caché de whitelist", e);
         }
     }
 
-    // Habilitar whitelist
-    public void enableWhitelist() throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE settings SET value = 'true' WHERE key = 'whitelist_enabled'")) {
-            stmt.executeUpdate();
-        }
+    /**
+     * Recarga el caché completo desde la base de datos.
+     * Llamar desde el comando /swhitelist reload.
+     */
+    public void reloadCache() {
+        loadCache();
     }
 
-    // Deshabilitar whitelist
-    public void disableWhitelist() throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE settings SET value = 'false' WHERE key = 'whitelist_enabled'")) {
-            stmt.executeUpdate();
-        }
+    // ──────────────────────────── Cache-safe read methods (NO DB access)
+    // ────────────────────────────
+
+    /**
+     * Verifica si la whitelist está habilitada — lee del caché, NO de la DB.
+     */
+    public boolean isWhitelistEnabled() {
+        return whitelistEnabled;
     }
 
     // Obtener collation según config (BINARY = case-sensitive, NOCASE = insensible)
@@ -110,12 +149,10 @@ public class DatabaseManager {
         }
     }
 
-    // Agregar jugador a la whitelist
     public void addPlayer(String username) throws SQLException {
         addPlayer(username, null);
     }
 
-    // Agregar jugador a la whitelist con Discord ID
     public void addPlayer(String username, String discordId) throws SQLException {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO whitelist (username, discord_id) VALUES (?, ?)")) {
@@ -123,9 +160,9 @@ public class DatabaseManager {
             stmt.setString(2, discordId);
             stmt.executeUpdate();
         }
+        whitelistedPlayers.add(username.toLowerCase());
     }
 
-    // Remover jugador de la whitelist
     public void removePlayer(String username) throws SQLException {
         String collation = getCollation();
         String sql = "DELETE FROM whitelist WHERE username COLLATE " + collation + " = ?";
@@ -133,14 +170,53 @@ public class DatabaseManager {
             stmt.setString(1, username);
             stmt.executeUpdate();
         }
+        whitelistedPlayers.remove(username.toLowerCase());
     }
 
-    // Verificar si un jugador está en la whitelist
-    public boolean isWhitelisted(String username) throws SQLException {
-        return doesPlayerExist(username);
+    public void enableWhitelist() throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE settings SET value = 'true' WHERE key = 'whitelist_enabled'")) {
+            stmt.executeUpdate();
+        }
+        whitelistEnabled = true;
     }
 
-    // Obtener Discord ID de un jugador
+    public void disableWhitelist() throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE settings SET value = 'false' WHERE key = 'whitelist_enabled'")) {
+            stmt.executeUpdate();
+        }
+        whitelistEnabled = false;
+    }
+
+    // ──────────────────────────── Async DB write helpers
+    // ────────────────────────────
+
+    /**
+     * Ejecuta un update de whitelist_enabled de forma asíncrona.
+     * Actualiza el caché en el hilo actual para que las lecturas sean inmediatas,
+     * y programa la escritura a disco en background.
+     */
+    public void setWhitelistEnabledAsync(boolean enabled) {
+        // Actualizar caché inmediatamente (thread-safe)
+        whitelistEnabled = enabled;
+        // Escritura async a la DB
+        dbExecutor.submit(() -> {
+            try {
+                try (PreparedStatement stmt = connection.prepareStatement(
+                        "UPDATE settings SET value = ? WHERE key = 'whitelist_enabled'")) {
+                    stmt.setString(1, enabled ? "true" : "false");
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "Error actualizando whitelist_enabled en DB", e);
+            }
+        });
+    }
+
+    // ──────────────────────────── Data access (commands)
+    // ────────────────────────────
+
     public String getDiscordId(String username) throws SQLException {
         String collation = getCollation();
         String sql = "SELECT discord_id FROM whitelist WHERE username COLLATE " + collation + " = ?";
@@ -154,20 +230,20 @@ public class DatabaseManager {
         }
     }
 
-    // Obtener todos los jugadores en la whitelist
-    public List<String> getAllPlayers() throws SQLException {
-        List<String> players = new ArrayList<>();
-        try (Statement stmt = connection.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist ORDER BY username")) {
-            while (rs.next()) {
-                players.add(rs.getString("username"));
-            }
+    public List<String> getAllPlayers() {
+        // Si la caché tiene datos, retornar desde ahí (más rápido)
+        List<String> players = new ArrayList<>(whitelistedPlayers.size());
+        for (String p : whitelistedPlayers) {
+            players.add(p);
         }
+        players.sort(java.util.Comparator.naturalOrder());
         return players;
     }
 
-    // Cerrar conexión
+    // ──────────────────────────── Shutdown ────────────────────────────
+
     public void closeConnection() {
+        dbExecutor.shutdownNow();
         if (connection != null) {
             try {
                 connection.close();

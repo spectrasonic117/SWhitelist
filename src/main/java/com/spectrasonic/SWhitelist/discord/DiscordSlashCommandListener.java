@@ -90,7 +90,9 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         event.deferReply(true).queue(hook -> {
             try {
-                if (plugin.getDatabaseManager().doesPlayerExist(player)) {
+                // Verificar en caché primero, si no está, consultar la DB
+                if (plugin.getDatabaseManager().isWhitelisted(player) ||
+                        plugin.getDatabaseManager().doesPlayerExist(player)) {
                     String msg = ERROR_PLAYER_EXISTS;
                     hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
                     return;
@@ -133,6 +135,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         event.deferReply(true).queue(hook -> {
             try {
+                // Leer desde caché (sin I/O a la DB)
                 if (!plugin.getDatabaseManager().isWhitelisted(player)) {
                     String msg = ERROR_NOT_IN_WHITELIST;
                     hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
@@ -162,6 +165,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     private void handleList(SlashCommandInteractionEvent event) {
         event.deferReply(true).queue(hook -> {
             try {
+                // Lee desde caché (sin I/O a la DB)
                 List<String> allPlayers = plugin.getDatabaseManager().getAllPlayers();
                 if (allPlayers.isEmpty()) {
                     hook.sendMessageEmbeds(EmbedUtils.createListEmbed(allPlayers, 1, 1, plugin)).queue();
@@ -169,7 +173,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                     List<MessageEmbed> pages = paginatePlayers(allPlayers, 25);
                     hook.sendMessageEmbeds(pages.get(0)).queue();
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Discord list error: " + e.getMessage());
                 String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
@@ -180,11 +184,12 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
     private void handleStatus(SlashCommandInteractionEvent event) {
         event.deferReply(true).queue(hook -> {
             try {
+                // Todo lee desde caché (sin I/O a la DB)
                 boolean enabled = plugin.getDatabaseManager().isWhitelistEnabled();
                 boolean lockdown = plugin.isLockdownActive();
                 int count = plugin.getDatabaseManager().getAllPlayers().size();
                 hook.sendMessageEmbeds(EmbedUtils.createStatusEmbed(enabled, lockdown, count, plugin)).queue();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Discord status error: " + e.getMessage());
                 String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
@@ -205,11 +210,12 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
 
         event.deferReply(true).queue(hook -> {
             try {
+                // Lee desde caché (sin I/O a la DB)
                 boolean whitelisted = plugin.getDatabaseManager().isWhitelisted(player);
                 hook.sendMessageEmbeds(
                         EmbedUtils.createCheckEmbed(whitelisted, player, plugin)
                 ).queue();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Discord check error: " + e.getMessage());
                 String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();

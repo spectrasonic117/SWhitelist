@@ -2,7 +2,7 @@
 # Plugin de whitelist moderno para Minecraft
 
 # Prefijo del plugin (formato MiniMessage)
-prefix: "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> "
+prefix: "<gradient:#168788:#1e8e8e><b>SWhitelist</gradient> <gray>»</gray> <reset>"
 
 # Configuración de whitelist
 whitelist:
@@ -13,69 +13,69 @@ whitelist:
 
 # Configuración de base de datos (solo SQLite)
 database:
-  file: "database.db"
+    file: "database.db"
 
 # Configuración de lockdown
 lockdown:
-  # Mensaje de kick cuando el servidor está en lockdown
-  kick-message: "<red>El servidor está en modo lockdown.</red>"
+    # Mensaje de kick cuando el servidor está en lockdown
+    kick-message: "<red>El servidor está en modo lockdown.</red>"
 
-  # Sonido de countdown (usar nombres de Sound de Bukkit)
-  countdown-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    # Sonido de countdown (usar nombres de Sound de Bukkit)
+    countdown-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
 
-  # Modo de kick durante lockdown:
-  # - notlisted: Kickear solo jugadores no en la whitelist
-  # - everyone: Kickear a todos los jugadores
-  # - nobypass: Kickear jugadores sin permiso de bypass
-  # - off: No kickear a nadie
-  kick-mode: "notlisted"
+    # Modo de kick durante lockdown:
+    # - notlisted: Kickear solo jugadores no en la whitelist
+    # - everyone: Kickear a todos los jugadores
+    # - nobypass: Kickear jugadores sin permiso de bypass
+    # - off: No kickear a nadie
+    kick-mode: "notlisted"
 
 # Formatos de tiempo para lockdown
 formats:
-  now: "ahora"
-  second: "segundo(s)"
-  minute: "minuto(s)"
-  hour: "hora(s)"
+    now: "ahora"
+    second: "segundo(s)"
+    minute: "minuto(s)"
+    hour: "hora(s)"
 
 # Configuración de integración con Discord
 discord:
-  # Habilitar/deshabilitar la integración con Discord
-  enabled: false
+    # Habilitar/deshabilitar la integración con Discord
+    enabled: false
 
-  # Token del bot de Discord (obtener en https://discord.com/developers/applications)
-  bot-token: ""
+    # Token del bot de Discord (obtener en https://discord.com/developers/applications)
+    bot-token: ""
 
-  # ID del servidor (guild) de Discord
-  guild-id: ""
+    # ID del servidor (guild) de Discord
+    guild-id: ""
 
-  # ID del canal donde se enviarán notificaciones y se aceptarán comandos
-  channel-id: ""
+    # ID del canal donde se enviarán notificaciones y se aceptarán comandos
+    channel-id: ""
 
-  # ID de un rol de Discord que se asignará al usuario cuando se agrega a la whitelist
-  whitelisted-rol: ""
+    # ID de un rol de Discord que se asignará al usuario cuando se agrega a la whitelist
+    whitelisted-rol: ""
 
-  # Roles de Discord autorizados por ID (activa modo desarrollador en Discord para copiar IDs)
-  # admin: acceso total a todos los comandos de whitelist
-  # user: solo puede agregarse a la whitelist (comando /whitelist add)
-  roles:
-    admin:
-      - ""
-    user:
-      - ""
+    # Roles de Discord autorizados por ID (activa modo desarrollador en Discord para copiar IDs)
+    # admin: acceso total a todos los comandos de whitelist
+    # user: solo puede agregarse a la whitelist (comando /whitelist add)
+    roles:
+        admin:
+            - ""
+        user:
+            - ""
 
-  # Notificaciones: qué eventos se notifican en Discord
-  notifications:
-    whitelist-add: true
-    whitelist-remove: true
-    whitelist-on: true
-    whitelist-off: true
-    lockdown: true
+    # Notificaciones: qué eventos se notifican en Discord
+    notifications:
+        whitelist-add: true
+        whitelist-remove: true
+        whitelist-on: true
+        whitelist-off: true
+        lockdown: true
 
-  # Configuración de embeds de Discord
-  embed:
-    color-success: "#22d2d4"
-    color-error: "#FF5555"
-    color-info: "#3ac990"
-    color-warning: "#FFAA00"
-    color-lockdown: "#FF0000"
-    footer-text: "SWhitelist"
+    # Configuración de embeds de Discord
+    embed:
+        color-success: "#22d2d4"
+        color-error: "#FF5555"
+        color-info: "#3ac990"
+        color-warning: "#FFAA00"
+        color-lockdown: "#FF0000"
+        footer-text: "SWhitelist"

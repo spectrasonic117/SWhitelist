@@ -10,13 +10,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.sql.SQLException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("all")
 public class LockdownCommand {
 
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private static BukkitRunnable activeCountdown;
 
     // Ejecutar comando lockdown
     public static void execute(CommandSender sender, String timeString, String reason, Main plugin) {
@@ -33,29 +34,23 @@ public class LockdownCommand {
             return;
         }
 
-        try {
-            // Deshabilitar whitelist temporalmente
-            plugin.getDatabaseManager().disableWhitelist();
+        // Deshabilitar whitelist (caché actualiza inmediatamente, DB se escribe async)
+        plugin.getDatabaseManager().setWhitelistEnabledAsync(false);
 
-            // Formatear duración para el mensaje
-            String duration = TimeUtils.formatDuration(
-                    delayMillis,
-                    plugin.getConfigManager().getTimeFormat("now"),
-                    plugin.getConfigManager().getTimeFormat("second"),
-                    plugin.getConfigManager().getTimeFormat("minute"),
-                    plugin.getConfigManager().getTimeFormat("hour"));
+        // Formatear duración para el mensaje
+        String duration = TimeUtils.formatDuration(
+                delayMillis,
+                plugin.getConfigManager().getTimeFormat("now"),
+                plugin.getConfigManager().getTimeFormat("second"),
+                plugin.getConfigManager().getTimeFormat("minute"),
+                plugin.getConfigManager().getTimeFormat("hour"));
 
-            // Anunciar lockdown
-            String message = plugin.getMessageManager().getMessage("lockdown-announce", "duration", duration);
-            MessageUtils.alertMessage(sender, message);
+        // Anunciar lockdown
+        String message = plugin.getMessageManager().getMessage("lockdown-announce", "duration", duration);
+        MessageUtils.alertMessage(sender, message);
 
-            // Programar countdown
-            scheduleCountdown(sender, delayMillis, reason, duration, plugin);
-
-        } catch (SQLException e) {
-            plugin.getLogger().severe("Error al iniciar lockdown: " + e.getMessage());
-            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
-        }
+        // Programar countdown
+        scheduleCountdown(sender, delayMillis, reason, duration, plugin);
     }
 
     // Programar countdown de lockdown
@@ -64,7 +59,12 @@ public class LockdownCommand {
         long startTime = System.currentTimeMillis();
         AtomicBoolean lockdownExecuted = new AtomicBoolean(false);
 
-        new BukkitRunnable() {
+        // Cancelar countdown anterior si existe
+        if (activeCountdown != null && !activeCountdown.isCancelled()) {
+            activeCountdown.cancel();
+        }
+
+        activeCountdown = new BukkitRunnable() {
             @Override
             public void run() {
                 long elapsed = System.currentTimeMillis() - startTime;
@@ -93,58 +93,54 @@ public class LockdownCommand {
                     executeLockdown(reason, duration, sender.getName(), plugin);
                     lockdownExecuted.set(true);
                     this.cancel();
+                    activeCountdown = null;
                 }
             }
-        }.runTaskTimer(plugin, 0L, 20L); // Ejecutar cada segundo
+        };
+        activeCountdown.runTaskTimer(plugin, 0L, 20L);
     }
 
     // Ejecutar lockdown
     private static void executeLockdown(String reason, String duration, String actor, Main plugin) {
-        try {
-            // Habilitar whitelist
-            plugin.getDatabaseManager().enableWhitelist();
+        // Habilitar whitelist (caché se actualiza inmediatamente, DB en background)
+        plugin.getDatabaseManager().setWhitelistEnabledAsync(true);
 
-            // Activar flag de lockdown para mensajes de kick
-            plugin.setLockdownActive(true);
+        // Activar flag de lockdown para mensajes de kick
+        plugin.setLockdownActive(true);
 
-            // Anunciar lockdown exitoso
-            MessageUtils.BroadcastMessage(plugin.getMessageManager().getMessage("lockdown-success"));
+        // Anunciar lockdown exitoso
+        MessageUtils.BroadcastMessage(plugin.getMessageManager().getMessage("lockdown-success"));
 
-            // Notificar a Discord
-            if (plugin.getDiscordManager() != null) {
-                plugin.getDiscordManager().notifyLockdown(duration, reason, actor);
-            }
-
-            // Kickear jugadores según configuración
-            String kickMode = plugin.getConfigManager().getLockdownKickMode();
-            String kickMessage = plugin.getConfigManager().getLockdownKickMessage();
-
-            switch (kickMode.toLowerCase()) {
-                case "notlisted" -> kickNotListedPlayers(kickMessage, plugin);
-                case "everyone" -> kickEveryone(kickMessage, plugin);
-                case "nobypass" -> kickNoBypassPlayers(kickMessage, plugin);
-                case "off" -> plugin.getLogger().info("Lockdown ejecutado sin kickear jugadores.");
-                default -> plugin.getLogger().warning("Modo de kick inválido: " + kickMode);
-            }
-
-            // Desactivar flag de lockdown después de kickear
-            plugin.setLockdownActive(false);
-
-        } catch (SQLException e) {
-            plugin.getLogger().severe("Error al ejecutar lockdown: " + e.getMessage());
+        // Notificar a Discord
+        if (plugin.getDiscordManager() != null) {
+            plugin.getDiscordManager().notifyLockdown(duration, reason, actor);
         }
+
+        // Kickear jugadores según configuración — usa caché, 0 queries a la DB
+        String kickMode = plugin.getConfigManager().getLockdownKickMode();
+        String kickMessage = plugin.getConfigManager().getLockdownKickMessage();
+
+        switch (kickMode.toLowerCase()) {
+            case "notlisted" -> kickNotListedPlayers(kickMessage, plugin);
+            case "everyone" -> kickEveryone(kickMessage, plugin);
+            case "nobypass" -> kickNoBypassPlayers(kickMessage, plugin);
+            case "off" -> plugin.getLogger().info("Lockdown ejecutado sin kickear jugadores.");
+            default -> plugin.getLogger().warning("Modo de kick inválido: " + kickMode);
+        }
+
+        // Desactivar flag de lockdown después de kickear
+        plugin.setLockdownActive(false);
     }
 
-    // Kickear jugadores no en la whitelist
+    // Kickear jugadores no en la whitelist — N+1 queries eliminadas, usa caché en memoria
     private static void kickNotListedPlayers(String kickMessage, Main plugin) {
+        // Copia inmutable del Set de jugadores whitelisteados (sin I/O, de un solo snapshot)
+        Set<String> whitelisted = plugin.getDatabaseManager().getWhitelistedPlayersCopy();
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            try {
-                if (!player.hasPermission("swhitelist.bypass") &&
-                        !plugin.getDatabaseManager().isWhitelisted(player.getName())) {
-                    player.kick(miniMessage.deserialize(kickMessage));
-                }
-            } catch (SQLException e) {
-                plugin.getLogger().severe("Error al verificar jugador " + player.getName() + ": " + e.getMessage());
+            if (!player.hasPermission("swhitelist.bypass") &&
+                    !whitelisted.contains(player.getName().toLowerCase())) {
+                player.kick(miniMessage.deserialize(kickMessage));
             }
         }
     }
@@ -164,6 +160,14 @@ public class LockdownCommand {
             if (!player.hasPermission("swhitelist.bypass")) {
                 player.kick(miniMessage.deserialize(kickMessage));
             }
+        }
+    }
+
+    // Cancelar countdown activo (llamar desde onDisable / reload)
+    public static void cancelActiveCountdown() {
+        if (activeCountdown != null && !activeCountdown.isCancelled()) {
+            activeCountdown.cancel();
+            activeCountdown = null;
         }
     }
 }

@@ -5,7 +5,7 @@
 
     <groupId>com.spectrasonic</groupId>
     <artifactId>SWhitelist</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -21,7 +21,7 @@
         <adventure.version>4.26.1</adventure.version>
         <sqlite.version>3.45.1.0</sqlite.version>
 
-        <!-- Plguins Version -->
+        <!-- Plugins Version -->
         <compiler.version>3.14.0</compiler.version>
         <shade.version>3.6.0</shade.version>
         <resources.version>3.3.1</resources.version>
@@ -206,6 +206,40 @@
                                         <exclude>META-INF/*.RSA</exclude>
                                     </excludes>
                                 </filter>
+                                <!-- Excluir módulos JDA pesados que NO usamos -->
+                                <filter>
+                                    <artifact>net.dv8tion:JDA</artifact>
+                                    <excludes>
+                                        <!-- Voice/Audio - MUY PESADO (Opus, WebSocket voice, etc.) -->
+                                        <exclude>net/dv8tion/jda/api/audio/**</exclude>
+                                        <exclude>net/dv8tion/jda/internal/audio/**</exclude>
+                                        <!-- Sharding - solo para >2500 guilds -->
+                                        <exclude>net/dv8tion/jda/api/sharding/**</exclude>
+                                        <exclude>net/dv8tion/jda/internal/sharding/**</exclude>
+                                        <exclude>net/dv8tion/jda/internal/utils/config/sharding/**</exclude>
+                                        <!-- Audit logs - no usados -->
+                                        <exclude>net/dv8tion/jda/api/audit/**</exclude>
+                                        <!-- Stickers, ScheduledEvents - entities no usadas -->
+                                        <exclude>net/dv8tion/jda/api/entities/Sticker*.class</exclude>
+                                        <exclude>net/dv8tion/jda/api/entities/ScheduledEvent*.class</exclude>
+                                        <exclude>net/dv8tion/jda/internal/entities/StickerImpl*.class</exclude>
+                                        <exclude>net/dv8tion/jda/internal/entities/ScheduledEventImpl*.class</exclude>
+                                    </excludes>
+                                </filter>
+                                <!-- Excluir Tink (crypto para voice) - JAR separado -->
+                                <filter>
+                                    <artifact>com.google.crypto.tink:tink</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
+                                <!-- Excluir Protobuf (usado por Tink) - JAR separado -->
+                                <filter>
+                                    <artifact>com.google.protobuf:protobuf-java</artifact>
+                                    <excludes>
+                                        <exclude>**</exclude>
+                                    </excludes>
+                                </filter>
                             </filters>
                         </configuration>
                     </execution>
@@ -221,7 +255,6 @@
                     <outputDirectory>${basedir}/out</outputDirectory>
                 </configuration>
             </plugin>
-            
         </plugins>
     </build>
 </project>

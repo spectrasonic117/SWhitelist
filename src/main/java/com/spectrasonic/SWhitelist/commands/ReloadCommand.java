@@ -11,18 +11,24 @@ public class ReloadCommand {
         try {
             // Recargar configuración
             plugin.getConfigManager().reloadConfig();
-            
+
             // Recargar mensajes
             plugin.getMessageManager().reloadMessages();
-            
-            // Recargar Discord
+
+            // Recargar caché de la base de datos en memoria
+            plugin.getDatabaseManager().reloadCache();
+
+            // Cancelar countdown de lockdown activo si lo hay
+            LockdownCommand.cancelActiveCountdown();
+
+            // Recargar Discord (disconnect + reconnect async)
             if (plugin.getDiscordManager() != null) {
                 plugin.getDiscordManager().reload();
             }
-            
+
             // Enviar mensaje de éxito
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("reload-success"));
-            
+
             plugin.getLogger().info("Configuración recargada por " + sender.getName());
 
         } catch (Exception e) {
