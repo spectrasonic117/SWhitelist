@@ -4,7 +4,6 @@ import com.spectrasonic.SWhitelist.Main;
 import lombok.Getter;
 
 import java.io.File;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -13,11 +12,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
+/**
+ * Fachada de almacenamiento de la whitelist.
+ * Elige el backend según `database.type` (sqlite | h2) y mantiene
+ * un caché en memoria para lecturas sin I/O (cada login, cada check).
+ */
 @Getter
 public class DatabaseManager {
 
     private final Main plugin;
-    private final Connection connection;
+    private final WhitelistStorage storage;
 
     // ── In-memory caches (avoids per-login / per-player DB queries) ──
     private volatile boolean whitelistEnabled;
@@ -30,55 +34,31 @@ public class DatabaseManager {
         return t;
     });
 
-    public DatabaseManager(Main plugin) throws SQLException {
+    public DatabaseManager(Main plugin) throws Exception {
         this.plugin = plugin;
-        this.connection = initializeDatabase();
+        this.storage = createStorage();
         loadCache();
     }
 
-    // ──────────────────────────── Database initialisation
-    // ────────────────────────────
+    // ──────────────────────────── Storage selection ────────────────────────────
 
-    private Connection initializeDatabase() throws SQLException {
+    private WhitelistStorage createStorage() throws Exception {
+        String type = plugin.getConfigManager().getStorageType();
         File dataFolder = plugin.getDataFolder();
         if (!dataFolder.exists()) {
             dataFolder.mkdirs();
         }
-
-        File dbFile = new File(dataFolder, "database.db");
-        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
-
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("""
-                        CREATE TABLE IF NOT EXISTS whitelist (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            username TEXT NOT NULL UNIQUE COLLATE BINARY,
-                            discord_id TEXT,
-                            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                        )
-                    """);
-
-            stmt.execute("""
-                        CREATE TABLE IF NOT EXISTS settings (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            key TEXT NOT NULL UNIQUE,
-                            value TEXT NOT NULL
-                        )
-                    """);
-
-            stmt.execute("""
-                        INSERT OR IGNORE INTO settings (key, value)
-                        VALUES ('whitelist_enabled', 'false')
-                    """);
-
-            // Migración: agregar discord_id si no existe
-            try {
-                stmt.execute("ALTER TABLE whitelist ADD COLUMN discord_id TEXT");
-            } catch (SQLException ignored) {
-                // La columna ya existe
-            }
+        // Insensible a mayúsculas; cualquier valor desconocido cae en sqlite (comportamiento previo)
+        if ("h2".equalsIgnoreCase(type) || "yml".equalsIgnoreCase(type)) {
+            File whitelistFile = new File(dataFolder, "whitelist.yml");
+            File configFile = new File(dataFolder, "config.yml");
+            plugin.getLogger().config("Usando guardado whitelist.yml.");
+            return new YamlStorage(whitelistFile, configFile, plugin.getLogger());
         }
-        return conn;
+        String file = plugin.getConfigManager().getDatabaseFile();
+        File dbFile = new File(dataFolder, file != null ? file : "database.db");
+        plugin.getLogger().config("Usando guardado SQLite (" + dbFile.getName() + ").");
+        return new SqliteStorage(dbFile);
     }
 
     // ──────────────────────────── Cache loading ────────────────────────────
@@ -90,111 +70,60 @@ public class DatabaseManager {
     private void loadCache() {
         try {
             // Cargar estado enabled/disabled
-            try (PreparedStatement stmt = connection.prepareStatement(
-                    "SELECT value FROM settings WHERE key = 'whitelist_enabled'")) {
-                ResultSet rs = stmt.executeQuery();
-                whitelistEnabled = rs.next() && rs.getString("value").equalsIgnoreCase("true");
-            }
+            whitelistEnabled = storage.loadWhitelistEnabled();
 
-            // Cargar todos los nombres en el Set de caché respetando case-sensitive
+            // Cargar todos los nombres en el Set de caché — siempre case-insensitive
             whitelistedPlayers.clear();
-            boolean caseSensitive = getCollation().equals("BINARY");
-            try (Statement stmt = connection.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT username FROM whitelist")) {
-                while (rs.next()) {
-                    String name = rs.getString("username");
-                    whitelistedPlayers.add(caseSensitive ? name : name.toLowerCase());
-                }
+            for (String name : storage.loadPlayers()) {
+                whitelistedPlayers.add(name.toLowerCase());
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             plugin.getLogger().log(Level.SEVERE, "Error cargando caché de whitelist", e);
         }
     }
 
     /**
-     * Recarga el caché completo desde la base de datos.
+     * Recarga el caché completo desde el almacenamiento.
      * Llamar desde el comando /swhitelist reload.
      */
     public void reloadCache() {
         loadCache();
     }
 
-    // ──────────────────────────── Cache-safe read methods (NO DB access)
-    // ────────────────────────────
+    // ──────────────────────────── Cache-safe read methods (NO storage access) ────────────────────────────
 
     /**
-     * Verifica si la whitelist está habilitada — lee del caché, NO de la DB.
+     * Verifica si la whitelist está habilitada — lee del caché, NO del storage.
      */
     public boolean isWhitelistEnabled() {
         return whitelistEnabled;
     }
 
-    // Obtener collation según config (BINARY = case-sensitive, NOCASE = insensible)
-    private String getCollation() {
-        try {
-            if (plugin.getConfigManager() != null && !plugin.getConfigManager().isWhitelistCaseSensitive()) {
-                return "NOCASE";
-            }
-        } catch (Exception ignored) {
-        }
-        return "BINARY";
-    }
-
-    // Verificar si un jugador existe en la whitelist
-    public boolean doesPlayerExist(String username) throws SQLException {
-        String collation = getCollation();
-        String sql = "SELECT COUNT(*) AS count FROM whitelist WHERE username COLLATE " + collation + " = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next() && rs.getInt("count") > 0;
-        }
-    }
-
-    public void addPlayer(String username) throws SQLException {
+    public void addPlayer(String username) throws Exception {
         addPlayer(username, null);
     }
 
-    public void addPlayer(String username, String discordId) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO whitelist (username, discord_id) VALUES (?, ?)")) {
-            stmt.setString(1, username);
-            stmt.setString(2, discordId);
-            stmt.executeUpdate();
-        }
-        boolean caseSensitive = getCollation().equals("BINARY");
-        whitelistedPlayers.add(caseSensitive ? username : username.toLowerCase());
+    public void addPlayer(String username, String discordId) throws Exception {
+        storage.addPlayer(username, discordId);
+        whitelistedPlayers.add(username.toLowerCase());
     }
 
-    public void removePlayer(String username) throws SQLException {
-        String collation = getCollation();
-        String sql = "DELETE FROM whitelist WHERE username COLLATE " + collation + " = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.executeUpdate();
-        }
-        boolean caseSensitive = collation.equals("BINARY");
-        whitelistedPlayers.remove(caseSensitive ? username : username.toLowerCase());
+    public void removePlayer(String username) throws Exception {
+        storage.removePlayer(username);
+        whitelistedPlayers.remove(username.toLowerCase());
     }
 
-    public void enableWhitelist() throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE settings SET value = 'true' WHERE key = 'whitelist_enabled'")) {
-            stmt.executeUpdate();
+    public boolean doesPlayerExist(String username) throws Exception {
+        // Consulta el caché (siempre case-insensitive); si no está, podría
+        // haberse añadido por fuera — el backend resuelve de última instancia.
+        String key = username == null ? null : username.toLowerCase();
+        if (whitelistedPlayers.contains(key)) {
+            return true;
         }
-        whitelistEnabled = true;
+        return storage.doesPlayerExist(username);
     }
 
-    public void disableWhitelist() throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE settings SET value = 'false' WHERE key = 'whitelist_enabled'")) {
-            stmt.executeUpdate();
-        }
-        whitelistEnabled = false;
-    }
-
-    // ──────────────────────────── Async DB write helpers
-    // ────────────────────────────
+    // ──────────────────────────── Async DB write helpers ────────────────────────────
 
     /**
      * Ejecuta un update de whitelist_enabled de forma asíncrona.
@@ -204,38 +133,23 @@ public class DatabaseManager {
     public void setWhitelistEnabledAsync(boolean enabled) {
         // Actualizar caché inmediatamente (thread-safe)
         whitelistEnabled = enabled;
-        // Escritura async a la DB
+        // Escritura async al storage
         dbExecutor.submit(() -> {
             try {
-                try (PreparedStatement stmt = connection.prepareStatement(
-                        "UPDATE settings SET value = ? WHERE key = 'whitelist_enabled'")) {
-                    stmt.setString(1, enabled ? "true" : "false");
-                    stmt.executeUpdate();
-                }
-            } catch (SQLException e) {
+                storage.saveWhitelistEnabled(enabled);
+            } catch (Exception e) {
                 plugin.getLogger().log(Level.SEVERE, "Error actualizando whitelist_enabled en DB", e);
             }
         });
     }
 
-    // ──────────────────────────── Data access (commands)
-    // ────────────────────────────
+    // ──────────────────────────── Data access (commands) ────────────────────────────
 
-    public String getDiscordId(String username) throws SQLException {
-        String collation = getCollation();
-        String sql = "SELECT discord_id FROM whitelist WHERE username COLLATE " + collation + " = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("discord_id");
-            }
-            return null;
-        }
+    public String getDiscordId(String username) throws Exception {
+        return storage.getDiscordId(username);
     }
 
     public List<String> getAllPlayers() {
-        // Si la caché tiene datos, retornar desde ahí (más rápido)
         List<String> players = new ArrayList<>(whitelistedPlayers.size());
         for (String p : whitelistedPlayers) {
             players.add(p);
@@ -246,14 +160,11 @@ public class DatabaseManager {
 
     /**
      * Verifica si un jugador está en la whitelist leyendo del caché (sin I/O).
-     * Respeta la configuración whitelist.case-sensitive.
-     * Alias de doesPlayerExist pero sin acceso a DB.
+     * Coincidencia por nombre, sin importar mayúsculas/minúsculas.
      */
     public boolean isWhitelisted(String username) {
         if (username == null) return false;
-        boolean caseSensitive = getCollation().equals("BINARY");
-        String key = caseSensitive ? username : username.toLowerCase();
-        return whitelistedPlayers.contains(key);
+        return whitelistedPlayers.contains(username.toLowerCase());
     }
 
     /**
@@ -268,10 +179,10 @@ public class DatabaseManager {
 
     public void closeConnection() {
         dbExecutor.shutdownNow();
-        if (connection != null) {
+        if (storage != null) {
             try {
-                connection.close();
-            } catch (SQLException e) {
+                storage.close();
+            } catch (Exception e) {
                 plugin.getLogger().severe("Error al cerrar la conexión a la base de datos: " + e.getMessage());
             }
         }

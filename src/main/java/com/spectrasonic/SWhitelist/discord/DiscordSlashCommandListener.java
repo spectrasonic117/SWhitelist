@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,7 +113,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 if (member != null) {
                     plugin.getDiscordManager().assignWhitelistedRole(member);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Discord add error: " + e.getMessage());
                 String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();
@@ -154,7 +153,7 @@ public class DiscordSlashCommandListener extends ListenerAdapter {
                 if (discordId != null && !discordId.isEmpty()) {
                     plugin.getDiscordManager().removeWhitelistedRoleByDiscordId(discordId);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Discord remove error: " + e.getMessage());
                 String msg = ERROR_DATABASE;
                 hook.sendMessageEmbeds(EmbedUtils.createErrorEmbed(msg, plugin)).queue();

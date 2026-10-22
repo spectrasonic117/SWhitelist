@@ -49,7 +49,9 @@ Todos los permisos por defecto son para OP.
 El archivo `config.yml` permite personalizar:
 
 - **Prefijo del plugin**: Formato MiniMessage para mensajes
-- **Base de datos**: Archivo SQLite (por defecto `database.db`)
+- **Base de datos**: Tipo de guardado `database.type` (`sqlite` por defecto, o `yml`, alias `h2`)
+  - `sqlite`: archivo `database.db` (driver incluido en Paper)
+  - `yml`: la lista de jugadores vive en `whitelist.yml` (solo nombres, p. ej. `whitelist: [- player1, ...]`; coincidencia sin importar mayúsculas/minúsculas). El estado on/off se guarda en `config.yml` (`database.enabled`) y se actualiza al usar `/swhitelist on|off`
 - **Lockdown**:
   - Mensaje de kick
   - Sonido de countdown
@@ -257,7 +259,7 @@ Si configuras `channel-id`, el bot solo responderá a comandos en ese canal espe
 
 ## Características
 
-- ✅ Base de datos SQLite integrada
+- ✅ Base de datos integrada (SQLite o whitelist.yml)
 - ✅ Sistema de lockdown con countdown
 - ✅ Mensajes en formato MiniMessage
 - ✅ Sonidos personalizables

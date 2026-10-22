@@ -4,8 +4,6 @@ import com.spectrasonic.SWhitelist.Main;
 import com.spectrasonic.Utils.MessageUtils;
 import org.bukkit.command.CommandSender;
 
-import java.sql.SQLException;
-
 public class AddCommand {
 
     // Ejecutar comando add
@@ -34,7 +32,7 @@ public class AddCommand {
                 plugin.getDiscordManager().notifyPlayerAdded(player, sender.getName());
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             plugin.getLogger().severe("Error al agregar jugador a la whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
         }

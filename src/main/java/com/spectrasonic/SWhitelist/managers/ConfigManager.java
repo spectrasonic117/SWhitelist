@@ -83,6 +83,10 @@ public class ConfigManager {
     }
 
     // Obtener configuración de base de datos
+    public String getStorageType() {
+        return getString("database.type", "sqlite");
+    }
+
     public String getDatabaseFile() {
         return getString("database.file");
     }

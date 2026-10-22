@@ -4,9 +4,22 @@ import com.spectrasonic.SWhitelist.Main;
 import com.spectrasonic.Utils.MessageUtils;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.CommandPermission;
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.StringArgument;
+import org.bukkit.entity.Player;
 
 public class SWhitelistCommand {
+
+    // Sugiere jugadores conectados; escribir un nombre fuera de línea sigue siendo válido.
+    // replaceSuggestions() devuelve Impl = Argument<String>, por eso el tipo declarado es Argument<String>
+    private static Argument<String> playerArg(Main plugin, String nodeName) {
+        return new StringArgument(nodeName)
+                .replaceSuggestions(ArgumentSuggestions.strings(info ->
+                        plugin.getServer().getOnlinePlayers().stream()
+                                .map(Player::getName)
+                                .toArray(String[]::new)));
+    }
 
     public static void register(Main plugin) {
         new CommandAPICommand("swhitelist")
@@ -28,7 +41,7 @@ public class SWhitelistCommand {
 
     private static CommandAPICommand createAddCommand(Main plugin) {
         return new CommandAPICommand("add")
-                .withArguments(new StringArgument("player"))
+                .withArguments(playerArg(plugin, "player"))
                 .executes((sender, args) -> {
                     String player = (String) args.get("player");
                     AddCommand.execute(sender, player, plugin);
@@ -37,7 +50,7 @@ public class SWhitelistCommand {
 
     private static CommandAPICommand createRemoveCommand(Main plugin) {
         return new CommandAPICommand("remove")
-                .withArguments(new StringArgument("player"))
+                .withArguments(playerArg(plugin, "player"))
                 .executes((sender, args) -> {
                     String player = (String) args.get("player");
                     RemoveCommand.execute(sender, player, plugin);

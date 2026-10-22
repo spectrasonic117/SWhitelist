@@ -6,13 +6,24 @@ prefix: "<gradient:#168788:#1e8e8e><b>SWhitelist</gradient> <gray>»</gray> <res
 
 # Configuración de whitelist
 whitelist:
+  # Estado actual de la whitelist (se actualiza al usar /swhitelist on|off)
+  # En modo yml este campo se escribe aquí; en modo sqlite se ignora (vive en database.db).
+  enabled: false
+
   # Si es true, distingue entre mayúsculas y minúsculas (case-sensitive)
   # true = "Anomaly" y "anomaly" son jugadores diferentes (nombre exacto)
   # false = ignora mayúsculas/minúsculas (comportamiento clásico de Minecraft)
   case-sensitive: true
 
-# Configuración de base de datos (solo SQLite)
+# Configuración de base de datos
 database:
+    # Tipo de guardado: "sqlite" o "yml" (alias: "h2")
+    # - sqlite: usa database.db (driver incluido en Paper)
+    # - yml: la lista de jugadores vive en whitelist.yml
+    #   (solo la lista de nombres, en formato whitelist: [- player1, - player2]).
+    #   Coincidencia por nombre sin importar mayúsculas/minúsculas.
+    type: "sqlite"
+
     file: "database.db"
 
 # Configuración de lockdown

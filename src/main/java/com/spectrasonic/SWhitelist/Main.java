@@ -38,7 +38,8 @@ public final class Main extends JavaPlugin {
         // Inicializar base de datos (con caché cargado en memoria)
         try {
             this.databaseManager = new DatabaseManager(this);
-            getLogger().config("Base de datos SQLite conectada exitosamente.");
+            getLogger().config("Guardado de whitelist iniciado (tipo: "
+                    + getConfigManager().getStorageType() + ").");
         } catch (Exception e) {
             getLogger().severe("Error al conectar con la base de datos: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);

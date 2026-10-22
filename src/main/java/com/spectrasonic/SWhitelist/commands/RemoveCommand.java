@@ -4,8 +4,6 @@ import com.spectrasonic.SWhitelist.Main;
 import com.spectrasonic.Utils.MessageUtils;
 import org.bukkit.command.CommandSender;
 
-import java.sql.SQLException;
-
 public class RemoveCommand {
 
     // Ejecutar comando remove
@@ -34,7 +32,7 @@ public class RemoveCommand {
                 plugin.getDiscordManager().notifyPlayerRemoved(player, sender.getName());
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             plugin.getLogger().severe("Error al remover jugador de la whitelist: " + e.getMessage());
             MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
         }
