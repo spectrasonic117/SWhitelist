@@ -19,11 +19,9 @@
         <commandapi.version>11.1.0</commandapi.version>
         <lombok.version>1.18.44</lombok.version>
         <adventure.version>4.26.1</adventure.version>
-        <sqlite.version>3.45.1.0</sqlite.version>
 
         <!-- Plugins Version -->
         <compiler.version>3.14.0</compiler.version>
-        <shade.version>3.6.0</shade.version>
         <resources.version>3.3.1</resources.version>
     </properties>
 
@@ -78,21 +76,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- SQLite -->
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-            <version>${sqlite.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- JDA Discord Bot -->
-        <dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>5.3.0</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -136,80 +119,6 @@
                         <nonFilteredFileExtension>jar</nonFilteredFileExtension>
                     </nonFilteredFileExtensions>
                 </configuration>
-            </plugin>
-
-            <!-- Maven Shade Plugin para incluir dependencias en el JAR -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${shade.version}</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>net.dv8tion</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jda</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>okhttp3</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.okhttp3</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>okio</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.okio</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.fasterxml</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jackson</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.commons.collections4</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.collections4</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.neovisionaries</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.nvws</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>club.minnced</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.minnced</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>gnu.trove</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.trove</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.iwebpp</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.iwebpp</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jetbrains.annotations</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jetbrains</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>net.dv8tion.jda.api.utils</pattern>
-                                    <shadedPattern>com.spectrasonic.SWhitelist.libs.jda.api.utils</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- JAR Plugin para especificar directorio de salida -->

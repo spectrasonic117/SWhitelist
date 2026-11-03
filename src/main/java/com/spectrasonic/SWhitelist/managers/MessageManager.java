@@ -22,11 +22,11 @@ public class MessageManager {
     // Cargar archivo de mensajes
     public void loadMessages() {
         File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        
+
         if (!messagesFile.exists()) {
             plugin.saveResource("messages.yml", false);
         }
-        
+
         messages = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
@@ -46,31 +46,8 @@ public class MessageManager {
         return message.replace("%" + placeholder + "%", value);
     }
 
-    // Obtener mensaje con múltiples placeholders
-    public String getMessage(String key, String placeholder1, String value1, String placeholder2, String value2) {
-        String message = messages.getString("message." + key, "<red>Mensaje no encontrado: " + key + "</red>");
-        return message.replace("%" + placeholder1 + "%", value1)
-                     .replace("%" + placeholder2 + "%", value2);
-    }
-
     // Obtener lista de mensajes
     public List<String> getMessageList(String key) {
         return messages.getStringList("message." + key);
-    }
-
-    // Obtener prefijo del plugin
-    public String getPrefix() {
-        return getMessage("prefix");
-    }
-
-    // Obtener mensaje de Discord
-    public String getDiscordMessage(String key) {
-        return messages.getString("discord." + key, key);
-    }
-
-    // Obtener mensaje de Discord con placeholder
-    public String getDiscordMessage(String key, String placeholder, String value) {
-        String message = messages.getString("discord." + key, key);
-        return message.replace("%" + placeholder + "%", value);
     }
 }

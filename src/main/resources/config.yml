@@ -1,30 +1,10 @@
 # Configuración de SWhitelist
-# Plugin de whitelist moderno para Minecraft
-
-# Prefijo del plugin (formato MiniMessage)
-prefix: "<gradient:#168788:#1e8e8e><b>SWhitelist</gradient> <gray>»</gray> <reset>"
+# Plugin de whitelist simple, guardado en YAML.
 
 # Configuración de whitelist
 whitelist:
-  # Estado actual de la whitelist (se actualiza al usar /swhitelist on|off)
-  # En modo yml este campo se escribe aquí; en modo sqlite se ignora (vive en database.db).
-  enabled: false
-
-  # Si es true, distingue entre mayúsculas y minúsculas (case-sensitive)
-  # true = "Anomaly" y "anomaly" son jugadores diferentes (nombre exacto)
-  # false = ignora mayúsculas/minúsculas (comportamiento clásico de Minecraft)
-  case-sensitive: true
-
-# Configuración de base de datos
-database:
-    # Tipo de guardado: "sqlite" o "yml" (alias: "h2")
-    # - sqlite: usa database.db (driver incluido en Paper)
-    # - yml: la lista de jugadores vive en whitelist.yml
-    #   (solo la lista de nombres, en formato whitelist: [- player1, - player2]).
-    #   Coincidencia por nombre sin importar mayúsculas/minúsculas.
-    type: "sqlite"
-
-    file: "database.db"
+    # Estado actual de la whitelist (se actualiza al usar /swhitelist on|off)
+    enabled: false
 
 # Configuración de lockdown
 lockdown:
@@ -47,46 +27,3 @@ formats:
     second: "segundo(s)"
     minute: "minuto(s)"
     hour: "hora(s)"
-
-# Configuración de integración con Discord
-discord:
-    # Habilitar/deshabilitar la integración con Discord
-    enabled: false
-
-    # Token del bot de Discord (obtener en https://discord.com/developers/applications)
-    bot-token: ""
-
-    # ID del servidor (guild) de Discord
-    guild-id: ""
-
-    # ID del canal donde se enviarán notificaciones y se aceptarán comandos
-    channel-id: ""
-
-    # ID de un rol de Discord que se asignará al usuario cuando se agrega a la whitelist
-    whitelisted-rol: ""
-
-    # Roles de Discord autorizados por ID (activa modo desarrollador en Discord para copiar IDs)
-    # admin: acceso total a todos los comandos de whitelist
-    # user: solo puede agregarse a la whitelist (comando /whitelist add)
-    roles:
-        admin:
-            - ""
-        user:
-            - ""
-
-    # Notificaciones: qué eventos se notifican en Discord
-    notifications:
-        whitelist-add: true
-        whitelist-remove: true
-        whitelist-on: true
-        whitelist-off: true
-        lockdown: true
-
-    # Configuración de embeds de Discord
-    embed:
-        color-success: "#22d2d4"
-        color-error: "#FF5555"
-        color-info: "#3ac990"
-        color-warning: "#FFAA00"
-        color-lockdown: "#FF0000"
-        footer-text: "SWhitelist"

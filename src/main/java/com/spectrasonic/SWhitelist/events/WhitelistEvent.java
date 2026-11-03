@@ -20,7 +20,7 @@ public class WhitelistEvent implements Listener {
         this.miniMessage = MiniMessage.miniMessage();
     }
 
-    // Verificar whitelist al intentar login — todo se lee del caché en memoria (sin I/O)
+    // Verificar whitelist al intentar login — todo se lee de la lista en memoria (sin I/O)
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerLogin(PlayerLoginEvent event) {
         Player player = event.getPlayer();
@@ -31,13 +31,13 @@ public class WhitelistEvent implements Listener {
             return;
         }
 
-        // Verificar si la whitelist está habilitada (lectura de caché, sin DB)
-        if (!plugin.getDatabaseManager().isWhitelistEnabled()) {
+        // Verificar si la whitelist está habilitada
+        if (!plugin.getWhitelistManager().isWhitelistEnabled()) {
             return;
         }
 
-        // Verificar si el jugador está en la whitelist (lectura de caché, sin DB)
-        if (!plugin.getDatabaseManager().isWhitelisted(playerName)) {
+        // Verificar si el jugador está en la whitelist
+        if (!plugin.getWhitelistManager().isWhitelisted(playerName)) {
             // Seleccionar mensaje de kick según modo lockdown
             String kickMessage;
             if (plugin.isLockdownActive()) {

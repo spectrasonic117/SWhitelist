@@ -2,20 +2,17 @@
 # Documentación de MiniMessage: https://docs.adventure.kyori.net/minimessage/format.html
 
 message:
-  # Prefijo del plugin
-  prefix: "<dark_gray>[<gradient:#22d2d4:#3ac990><b>SWhitelist</gradient>]</dark_gray> <white>»</white> "
-
   # Comandos - Agregar
   success-added: "Agregaste a <white>%player%</white> a la whitelist."
   already-exists: "El jugador <white>%player%</white> ya está en la whitelist."
 
   # Comandos - Remover
   success-removed: "Quitaste a <white>%player%</white> de la whitelist."
-  not-in-database: "El jugador <white>%player%</white> no está en la whitelist."
+  not-in-whitelist: "El jugador <white>%player%</white> no está en la whitelist."
 
   # Comandos - On/Off
   success-whitelist-on: "La whitelist ha sido <green>Activada</green>."
-  success-whitelist-off: "La whitelist ha sido <red>Dsactivada</red>."
+  success-whitelist-off: "La whitelist ha sido <red>Desactivada</red>."
   whitelist-already-enabled: "La whitelist ya está activada."
   whitelist-already-disabled: "La whitelist ya está desactivada."
 
@@ -33,17 +30,16 @@ message:
   reload-success: "La configuración ha sido recargada exitosamente."
 
   # Errores
-  no-permission: "No tienes permiso para ejecutar este comando."
-  error-database: "Ocurrió un error al acceder a la base de datos."
+  error-save: "Ocurrió un error al guardar la whitelist."
   error-limit: "El nombre del jugador debe tener al menos 3 caracteres."
 
   # Kick
-  whitelist-kick: "La whitelist está activa y no esás en ella"
+  whitelist-kick: "La whitelist está activa y no estás en ella"
 
   # Ayuda
   help-menu:
     - ""
-    - "<gradient:#168788:#1e8e8e>lSWhitelist</gradient> <gray>»</gray> <white>Comandos disponibles:</white>"
+    - "<gradient:#168788:#1e8e8e>SWhitelist</gradient> <gray>»</gray> <white>Comandos disponibles:</white>"
     - ""
     - "<gray>|</gray> <aqua>/swhitelist add <player></aqua> <gray>-</gray> <gray>Agregar jugador a la whitelist.</gray>"
     - "<gray>|</gray> <aqua>/swhitelist remove <player></aqua> <gray>-</gray> <gray>Remover jugador de la whitelist.</gray>"
@@ -53,41 +49,3 @@ message:
     - "<gray>|</gray> <aqua>/swhitelist lockdown <time> [reason]</aqua> <gray>-</gray> <gray>Activar modo lockdown.</gray>"
     - "<gray>|</gray> <aqua>/swhitelist reload</aqua> <gray>-</gray> <gray>Recargar configuración.</gray>"
     - ""
-
-# Mensajes de Discord
-discord:
-  embed-title-add: "✅ Player Added to Whitelist"
-  embed-title-remove: "🗑️ Player Removed from Whitelist"
-  embed-title-list: "📋 Whitelist Players"
-  embed-title-status: "📊 Whitelist Status"
-  embed-title-on: "🟢 Whitelist Enabled"
-  embed-title-off: "🔴 Whitelist Disabled"
-  embed-title-lockdown: "🔒 Lockdown Initiated"
-  embed-field-player: "Player"
-  embed-field-actor: "By"
-  embed-field-count: "Total Players"
-  embed-field-reason: "Reason"
-  embed-field-duration: "Duration"
-  embed-field-status: "Status"
-  embed-field-page: "Page"
-  embed-footer: "SWhitelist"
-  status-enabled: "Enabled"
-  status-disabled: "Disabled"
-  status-lockdown-active: "Lockdown is active"
-  status-no-players: "No players in the whitelist."
-  added-by: "Added by %actor%"
-  removed-by: "Removed by %actor%"
-  enabled-by: "Enabled by %actor%"
-  disabled-by: "Disabled by %actor%"
-  lockdown-by: "Lockdown by %actor%"
-  error-no-permission: "You do not have permission to use this command."
-  error-admin-only: "This command requires an admin role."
-  error-wrong-channel: "This command can only be used in the designated whitelist channel."
-  error-player-exists: "That player is already whitelisted."
-  error-not-in-whitelist: "That player is not in the whitelist."
-  error-player-name-short: "Player name must be at least 3 characters."
-  error-not-configured: "Discord integration is not properly configured. Contact an administrator."
-  error-database: "A database error occurred. Please try again."
-  check-found: "✅ **%player%** está en la whitelist."
-  check-not-found: "❌ **%player%** no está en la whitelist."
-  whitelist-added-public: "✅ El jugador **%player%** fue agregado a la Whitelist."

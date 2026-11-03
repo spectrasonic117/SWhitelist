@@ -16,25 +16,20 @@ public class RemoveCommand {
 
         try {
             // Verificar si el jugador existe en la whitelist
-            if (!plugin.getDatabaseManager().doesPlayerExist(player)) {
-                String message = plugin.getMessageManager().getMessage("not-in-database", "player", player);
+            if (!plugin.getWhitelistManager().isWhitelisted(player)) {
+                String message = plugin.getMessageManager().getMessage("not-in-whitelist", "player", player);
                 MessageUtils.denyMessage(sender, message);
                 return;
             }
 
             // Remover jugador de la whitelist
-            plugin.getDatabaseManager().removePlayer(player);
+            plugin.getWhitelistManager().removePlayer(player);
             String message = plugin.getMessageManager().getMessage("success-removed", "player", player);
             MessageUtils.successMessage(sender, message);
 
-            // Notificar a Discord
-            if (plugin.getDiscordManager() != null) {
-                plugin.getDiscordManager().notifyPlayerRemoved(player, sender.getName());
-            }
-
         } catch (Exception e) {
             plugin.getLogger().severe("Error al remover jugador de la whitelist: " + e.getMessage());
-            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
+            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-save"));
         }
     }
 }

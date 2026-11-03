@@ -16,25 +16,20 @@ public class AddCommand {
 
         try {
             // Verificar si el jugador ya existe en la whitelist
-            if (plugin.getDatabaseManager().doesPlayerExist(player)) {
+            if (plugin.getWhitelistManager().isWhitelisted(player)) {
                 String message = plugin.getMessageManager().getMessage("already-exists", "player", player);
                 MessageUtils.denyMessage(sender, message);
                 return;
             }
 
             // Agregar jugador a la whitelist
-            plugin.getDatabaseManager().addPlayer(player);
+            plugin.getWhitelistManager().addPlayer(player);
             String message = plugin.getMessageManager().getMessage("success-added", "player", player);
             MessageUtils.successMessage(sender, message);
 
-            // Notificar a Discord
-            if (plugin.getDiscordManager() != null) {
-                plugin.getDiscordManager().notifyPlayerAdded(player, sender.getName());
-            }
-
         } catch (Exception e) {
             plugin.getLogger().severe("Error al agregar jugador a la whitelist: " + e.getMessage());
-            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
+            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-save"));
         }
     }
 }

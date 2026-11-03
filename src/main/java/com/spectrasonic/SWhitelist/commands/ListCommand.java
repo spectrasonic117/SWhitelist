@@ -9,10 +9,10 @@ import java.util.StringJoiner;
 
 public class ListCommand {
 
-    // Ejecutar comando list — ahora lee desde caché, sin queries a la DB
+    // Ejecutar comando list — lee de la lista en memoria, sin I/O
     public static void execute(CommandSender sender, Main plugin) {
-        // Obtener todos los jugadores en la whitelist (desde caché)
-        List<String> players = plugin.getDatabaseManager().getAllPlayers();
+        // Obtener todos los jugadores en la whitelist
+        List<String> players = plugin.getWhitelistManager().getAllPlayers();
 
         // Verificar si la lista está vacía
         if (players.isEmpty()) {

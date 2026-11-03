@@ -6,6 +6,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import org.bukkit.entity.Player;
 
@@ -81,10 +82,10 @@ public class SWhitelistCommand {
     private static CommandAPICommand createLockdownCommand(Main plugin) {
         return new CommandAPICommand("lockdown")
                 .withArguments(new StringArgument("time"))
-                .withOptionalArguments(new StringArgument("reason"))
+                .withOptionalArguments(new GreedyStringArgument("reason"))
                 .executes((sender, args) -> {
                     String time = (String) args.get("time");
-                    String reason = (String) args.getOrDefault("reason", null);
+                    String reason = (String) args.get("reason");
                     LockdownCommand.execute(sender, time, reason, plugin);
                 });
     }

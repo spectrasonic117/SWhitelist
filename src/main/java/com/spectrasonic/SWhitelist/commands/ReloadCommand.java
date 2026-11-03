@@ -15,16 +15,11 @@ public class ReloadCommand {
             // Recargar mensajes
             plugin.getMessageManager().reloadMessages();
 
-            // Recargar caché de la base de datos en memoria
-            plugin.getDatabaseManager().reloadCache();
+            // Recargar lista de la whitelist desde whitelist.yml
+            plugin.getWhitelistManager().reload();
 
             // Cancelar countdown de lockdown activo si lo hay
             LockdownCommand.cancelActiveCountdown();
-
-            // Recargar Discord (disconnect + reconnect async)
-            if (plugin.getDiscordManager() != null) {
-                plugin.getDiscordManager().reload();
-            }
 
             // Enviar mensaje de éxito
             MessageUtils.successMessage(sender, plugin.getMessageManager().getMessage("reload-success"));
@@ -33,7 +28,7 @@ public class ReloadCommand {
 
         } catch (Exception e) {
             plugin.getLogger().severe("Error al recargar configuración: " + e.getMessage());
-            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-database"));
+            MessageUtils.denyMessage(sender, plugin.getMessageManager().getMessage("error-save"));
         }
     }
 }

@@ -10,10 +10,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings("all")
 public class LockdownCommand {
 
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
@@ -34,8 +32,8 @@ public class LockdownCommand {
             return;
         }
 
-        // Deshabilitar whitelist (caché actualiza inmediatamente, DB se escribe async)
-        plugin.getDatabaseManager().setWhitelistEnabledAsync(false);
+        // Deshabilitar whitelist durante el countdown
+        plugin.getWhitelistManager().setWhitelistEnabled(false);
 
         // Formatear duración para el mensaje
         String duration = TimeUtils.formatDuration(
@@ -50,12 +48,11 @@ public class LockdownCommand {
         MessageUtils.alertMessage(sender, message);
 
         // Programar countdown
-        scheduleCountdown(sender, delayMillis, reason, duration, plugin);
+        scheduleCountdown(sender, delayMillis, reason, plugin);
     }
 
     // Programar countdown de lockdown
-    private static void scheduleCountdown(CommandSender sender, long delayMillis, String reason, String duration,
-            Main plugin) {
+    private static void scheduleCountdown(CommandSender sender, long delayMillis, String reason, Main plugin) {
         long startTime = System.currentTimeMillis();
         AtomicBoolean lockdownExecuted = new AtomicBoolean(false);
 
@@ -90,7 +87,7 @@ public class LockdownCommand {
 
                 // Ejecutar lockdown cuando el tiempo se agote
                 if (elapsed >= delayMillis && !lockdownExecuted.get()) {
-                    executeLockdown(reason, duration, sender.getName(), plugin);
+                    executeLockdown(reason, plugin);
                     lockdownExecuted.set(true);
                     this.cancel();
                     activeCountdown = null;
@@ -101,28 +98,26 @@ public class LockdownCommand {
     }
 
     // Ejecutar lockdown
-    private static void executeLockdown(String reason, String duration, String actor, Main plugin) {
-        // Habilitar whitelist (caché se actualiza inmediatamente, DB en background)
-        plugin.getDatabaseManager().setWhitelistEnabledAsync(true);
+    private static void executeLockdown(String reason, Main plugin) {
+        // Habilitar whitelist
+        plugin.getWhitelistManager().setWhitelistEnabled(true);
 
         // Activar flag de lockdown para mensajes de kick
         plugin.setLockdownActive(true);
 
         // Anunciar lockdown exitoso
         MessageUtils.BroadcastMessage(plugin.getMessageManager().getMessage("lockdown-success"));
-
-        // Notificar a Discord
-        if (plugin.getDiscordManager() != null) {
-            plugin.getDiscordManager().notifyLockdown(duration, reason, actor);
+        if (reason != null) {
+            plugin.getLogger().info("Motivo del lockdown: " + reason);
         }
 
-        // Kickear jugadores según configuración — usa caché, 0 queries a la DB
+        // Kickear jugadores según configuración
         String kickMode = plugin.getConfigManager().getLockdownKickMode();
         String kickMessage = plugin.getConfigManager().getLockdownKickMessage();
 
         switch (kickMode.toLowerCase()) {
             case "notlisted" -> kickNotListedPlayers(kickMessage, plugin);
-            case "everyone" -> kickEveryone(kickMessage, plugin);
+            case "everyone" -> kickNoBypassPlayers(kickMessage, plugin);
             case "nobypass" -> kickNoBypassPlayers(kickMessage, plugin);
             case "off" -> plugin.getLogger().info("Lockdown ejecutado sin kickear jugadores.");
             default -> plugin.getLogger().warning("Modo de kick inválido: " + kickMode);
@@ -132,20 +127,11 @@ public class LockdownCommand {
         plugin.setLockdownActive(false);
     }
 
-    // Kickear jugadores no en la whitelist — N+1 queries eliminadas, usa caché en memoria
+    // Kickear jugadores no en la whitelist
     private static void kickNotListedPlayers(String kickMessage, Main plugin) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.hasPermission("swhitelist.bypass") &&
-                    !plugin.getDatabaseManager().isWhitelisted(player.getName())) {
-                player.kick(miniMessage.deserialize(kickMessage));
-            }
-        }
-    }
-
-    // Kickear a todos los jugadores
-    private static void kickEveryone(String kickMessage, Main plugin) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.hasPermission("swhitelist.bypass")) {
+                    !plugin.getWhitelistManager().isWhitelisted(player.getName())) {
                 player.kick(miniMessage.deserialize(kickMessage));
             }
         }

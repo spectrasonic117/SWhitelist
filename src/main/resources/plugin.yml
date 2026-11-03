@@ -1,10 +1,10 @@
 name: SWhitelist
-api: ["1.21"]
-version: "1.0.0"
+version: "${project.version}"
 main: com.spectrasonic.SWhitelist.Main
 api-version: "1.21"
 description: "Plugin moderno de whitelist para Minecraft"
 author: Spectrasonic
+depend: [CommandAPI]
 
 permissions:
     swhitelist.use:
